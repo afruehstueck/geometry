@@ -1,34 +1,35 @@
-% @file     regression.m
+% @file     regression_inputClick.m
 % @author   afruehstueck
 % @date     02/02/2017
 
-%create a 2D view and request a 2D usergenerated object to plot
-function [viewer, points] = regression(dimX, dimY)
+%create a 2D view and plot a function
+function [viewer, points] = regression_inputClick()
     clear;
     clc;
     
-    if (~exist('dimX', 'var'))
-        dimX = [-10, 10];
-    end
-
-    if (~exist( 'dimY', 'var'))
-        dimY = [-10, 10];
-    end
+    dimX = [-5, 5];
+    dimY = [-5, 5];
 
     scr = get(groot, 'ScreenSize');  
     fig = figure('Name', '2D Viewer', 'NumberTitle', 'off', 'Position', [scr(3)/2 50 scr(3)/3 scr(3)/3]);
     hold on;
-    grid on;
-    axis([dimX dimY]);
-
+    axis([dimX, dimY]);    
+  
     x = zeros(1,1);
     y = zeros(1,1);
-    
+    r = linspace(-5, 5);
     num = 1;
-    r=linspace(-10,10);
     while ishandle(fig)
         [ x(num), y(num) ] = ginput(1);
 
+%         prompt = 'Input degree of output polynomial: ';
+%         str = input(prompt, 's');
+%         if isempty(str)
+%             deg = num-1
+%         else
+%             deg = str2num(str)
+%         end
+    
         A = ones(num);
          
         for col=1:num-1 
@@ -36,7 +37,8 @@ function [viewer, points] = regression(dimX, dimY)
         end
         
         b = y';
-        X = linsolve(A, b);
+        %X = linsolve(A, b);
+        X = A \ b;
         
         cla(fig);
         

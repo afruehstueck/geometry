@@ -1,0 +1,53 @@
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+\documentclass{scrartcl}
+
+%\usepackage{mathptmx}
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{easybmat}
+\usepackage{natbib} % Required to change bibliography style to APA
+\usepackage{amsmath} % Required for some math elements 
+\usepackage{amssymb}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+
+\usepackage{datetime}
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+
+%\usepackage{times} % Uncomment to use the Times New Roman font
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT INFORMATION
+%----------------------------------------------------------------------------------------
+
+\title{CS 390E: Geometry Processing \\ Assignment 02} % Title
+\subtitle{Regression}
+\author{Anna Fr\"{u}hst\"{u}ck} % Author name
+
+\newdate{date}{05}{02}{2017}
+%\date{\displaydate{date}}
+\date{\today}
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+%"C:\Program Files (x86)\SumatraPDF\SumatraPDF.exe" -reuse-instance -inverse-search "\"C:\Program Files (x86)\TeXstudio\texstudio.exe\" \"%%f\" -line %%l" "?am.pdf"
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+
+\section{Linear Regression}
+In linear regression, the assumption is that the model that generates the data involves a linear combination of the input variables.
+$$y(x, w) = w_0 + w_1x_1 + ... + w_nx_n$$
+or simplified 
+$$y(x, w) = w_0 + \sum_{j=1}^{M-1}{w_jx_j}$$
+For polynomial regression in one dimension, we 
+$$y(x, w) = w_0 + \sum_{d=1}^{D}{w_dx^d}$$
+\end{document}
