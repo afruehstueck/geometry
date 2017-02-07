@@ -3,7 +3,7 @@
 % @date     06/02/2017
 
 %create a 2D view and plot a function
-function [viewer, points] = regression_inputFn()
+function [] = regression_inputFn()
     clear;
     clc;
     
@@ -15,7 +15,7 @@ function [viewer, points] = regression_inputFn()
         dimY = [-5, 5];
     end
 
-    scr = get(groot, 'ScreenSize');  
+    scr = get(0, 'ScreenSize');  
     fig = figure('Name', '2D Viewer', 'NumberTitle', 'off', 'Position', [scr(3)/2 50 scr(3)/3 scr(3)/3]);
     hold on;
     axis auto;    
@@ -25,7 +25,7 @@ function [viewer, points] = regression_inputFn()
     %[y, y_noise] = noisyFunction(x, 0.4, @sin);
     %[y, y_noise] = noisyFunction(x, 0.4, @cos);
     %[y, y_noise] = noisyFunction(x, 2., @polynomial, [0.8 -0.3 0.4 0.5 -1.2]);
-    [y, y_noise] = noisyFunction(x, 20., @polynomial, [2.8 -0.3 1.4 3.2]);
+    [y, y_noise] = noisyFunction(x, 45., @polynomial, [-.8 0.3 1.4 3.5 2.1 -4.1]);
     
     num = length(x);  
     
@@ -49,7 +49,6 @@ function [viewer, points] = regression_inputFn()
         X = A \ b;
 
         cla(fig);
-
         plot(x, y_noise, '*');
         plot(x, polyval(X, x));
         drawnow;

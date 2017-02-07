@@ -50,4 +50,57 @@ or simplified
 $$y(x, w) = w_0 + \sum_{j=1}^{M-1}{w_jx_j}$$
 For polynomial regression in one dimension, we 
 $$y(x, w) = w_0 + \sum_{d=1}^{D}{w_dx^d}$$
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{.45\textwidth}
+		\centering
+		\includegraphics[width=\linewidth,trim={2.5cm 2.5cm 2.5cm 2.5cm},clip]{img/regression_2dim}
+		\caption{Polynomial of degree 2}
+	\end{subfigure}%
+	\begin{subfigure}{.45\textwidth}
+		\centering
+		\includegraphics[width=\linewidth,trim={2.5cm 2.5cm 2.5cm 2.5cm},clip]{img/regression_10dim_overfitting}
+		\caption{Polynomial of degree 10}
+		\label{fig:regression1overfitting}
+	\end{subfigure}%
+	\caption{
+		Regression on data points generated along the quadratic polynomial $1.4x^2 + 0.3x - 0.8$ with added noise. Note the overfitting in Fig.~\ref{fig:regression1overfitting} when choosing a polynomial of a high degree.
+	}
+	\label{fig:regression1}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth,trim={2.5cm 1.5cm 2.5cm 1.5cm},clip]{img/regression_3_5_8dim}
+	\caption{
+		Regression on data points generated along a sine curve with added noise.\\ 
+		{\footnotesize \textit{Polynomials: red = degree 3, yellow = degree 5, purple = degree 8.}}
+		}
+	\label{fig:regression2}
+\end{figure}
+
+\begin{figure}[H]
+	\includegraphics[width=\linewidth,trim={2.5cm 1.5cm 2.5cm 1.5cm},clip]{img/polynomialfitting1}
+	\caption{
+		Iterative fitting of polynomial of degree $n-1$ to $n$ user-generated data points.
+	}
+	\label{fig:regression3}
+\end{figure}
+
+\section{Natural Cubic Splines}
+\begin{figure}[H]
+	\includegraphics[width=\linewidth,trim={2.5cm 1.5cm 2.5cm 1.5cm},clip]{img/mouse_splines}
+	\caption{
+		Natural cubic splines interpolating between points entered consecutively through mouse-click.
+	}
+	\label{fig:splines1}
+\end{figure}
+\begin{figure}[H]
+	\includegraphics[width=\linewidth,trim={2.5cm 1.5cm 2.5cm 1.5cm},clip]{img/compare_splines2}
+	\caption{
+		{\footnotesize \textit{blue solid = my implementation, \\red dotted = \emph{MATLAB \texttt{csape}} function,\\green dashed = \emph{MATLAB \texttt{spline}} function.}}\\
+		Comparison of different implementations of cubic splines in MATLAB. Note the slightly different results due to differing end conditions.\\My implementation uses $P_0'(0)=0$ and $P_{n-1}'(1)=0$ as end conditions in this instance.
+	}
+	\label{fig:splines2}
+\end{figure}
 \end{document}
