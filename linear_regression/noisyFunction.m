@@ -13,6 +13,7 @@ function [y, points] = noisyFunction(x, range, fun, coeff)
     end
 
     % scale random values to noise range e.g. [-0.1, +0.1] for range 0.2
-    noise = -(range / 2) + range * rand(length(y), 1); 
-    points(:) = y(:) + noise(:);
+    noise = -(range / 2) + range * rand(size(y)); 
+    %points(:) = y(:) + noise(:);
+    points = y + noise;
 end

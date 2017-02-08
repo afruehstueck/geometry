@@ -2,92 +2,43 @@
 % @author   afruehstueck
 % @date     07/02/2017
 
-%create a 2D view and plot a function
-function [viewer, points] = cubicSplines()
-    clear;
-    clc;
+%evaluate arguments and pick corresponding spline function
+function [viewer, points] = cubicSplines(x, y, z, closed)
+    if ~exist('closed', 'var')
+        closed = 0;
+    end
 
-    dimX = [-10, 10];
-    dimY = [-5, 5];
-
-    scr = get(0, 'ScreenSize');  
-    fig = figure('Name', '2D Viewer', 'NumberTitle', 'off', 'Position', [scr(3)/2 50 scr(3)/3 scr(3)/3]);
-    hold on;
-    axis([dimX dimY]);    
-    
-    x = [];
-    y = [];
-    
-    %READ DATA FROM FILE
-    data = dlmread('data_bunny.txt'); % read from ASCII file
-    %data = dlmread('data_five.txt'); % read from ASCII file
-    
-    x = data(1:size(data,1), 1);
-    y = data(1:size(data,1), 2);
-    
-    sizez = size(x, 1);
-    lin = linspace(0, 4*pi, sizez);
-    %choose z-coords along sine curve
-    z = -100 + 200 * sin(lin);
-    
-    
-    %SPIRAL
-%     b = 0.1;
-%     a = 0;
-%     N = 4;
-%     t = linspace(0, N*2*pi, 100)
-%     cost = b *cos(t(:) + a)
-%     sint = b *sin(t(:) + a)
-%     x = t.* cost
-%     y = t.* sint
-    %choose z-coords randomly
-    %z = -25 + 50 * rand(sizez, 1);
-    
-    %test points
-    %x = [-2, -1.4, -1.0, -0.8, 0.8, 1.3, 1.5];
-    %y = [-1.1, -3.4, -2., -0.3, 1.3, 1.8, 3.5];
-   
-    %x = -10:10;
-    %y = cos(x).*abs(x);
-    %[~, y] = noisyFunction(x, .7, @sin);
-    %[~, y] = noisyFunction(x, 1000., @polynomial, [2.8 -0.3 1.4 3.2]);
-    
-    if length(x) == 0 && length(y) == 0 %do mousepicking
-        mousePicking(fig);
-    else %take predefined points
-        axis auto;
-        plot3(x, y, z, 'o');
-        calculateSpline(x, y, z, 1);
-        %calculateSpline(x, y, 2);
+    if ~exist('z', 'var') || isempty(z) || ~any(z) %2 dimensional
+        cubic2DSpline(x, y, closed);
+    else %3 dimensional
+        cubic3DSpline(x, y, z, closed);
     end
 end
 
-function [] = mousePicking(fig) 
-    % Give instructions
-    disp('Left mouse button picks points.')
-    disp('Right mouse button picks last point.')
-    % Stores integer value for which button is pressed
-    % 1 for left, 2 for middle, 3 for right
+%calculates spline for two-dimensional input
+function [] = cubic2DSpline(x, y, closed)    
+    abcd_x = evaluate1DSpline(x, closed);
+    abcd_y = evaluate1DSpline(y, closed);
+    spl = size(abcd_x, 1); %number of splines
     
-    button = 1; 
-    pts = 0;
+    u = linspace(0, 1);
+    u3 = u.^3;
+    u2 = u.^2;
     
-    while button == 1
-        pts = pts+1;
-        [x(pts), y(pts), button] = ginput(1); %Gets mouse click input
+    for i = 1:spl %step through segments
+        c_x = abcd_x(i,:);
+        c_y = abcd_y(i,:);
         
-        cla(fig);
-        plot(x, y,'o');
-        
-        if pts == 1 %calculate spline for >=2 points 
-            continue
-        end
-        
-        calculateSpline(x, y);
+        p_x = c_x(4).*u3 + c_x(3).*u2 + c_x(2).*u + c_x(1);
+        p_y = c_y(4).*u3 + c_y(3).*u2 + c_y(2).*u + c_y(1);
+
+        %plot spline segment
+        plot(p_x, p_y,'-');
     end
 end
 
-function [] = calculateSpline(x, y, z, closed)
+%calculates spline for three-dimensional input
+function [] = cubic3DSpline(x, y, z, closed)
     if (~exist('closed', 'var'))
         closed = 0;
     end
@@ -111,7 +62,6 @@ function [] = calculateSpline(x, y, z, closed)
         p_z = c_z(4).*u3 + c_z(3).*u2 + c_z(2).*u + c_z(1);
 
         %plot spline segment
-        %plot(p_x, p_y,'-');
         plot3(p_x, p_y, p_z,'-')
     end
 end
@@ -136,27 +86,25 @@ function abcd = evaluate1DSpline( v, closed )
         b(i) = 3*(v(i+1) - v(i-1));
     end
 
-    closed 
-    %first row
+    %different edge conditions for closed or open spline curve
     if closed == 1
+        %first row
         M(1, 1:2) = [4 1];
         M(1, pts) = 1;
         b(1) = 3*(v(2) - v(pts));
-    else
-        M(1, 1:2) = [2 1];
-        b(1) = 3*(v(2) - v(1));
-    end
-
-    %last row
-    if closed == 1
+        %last row
         M(pts, 1) = 1;
         M(pts, pts-1:pts) = [1 4];
         b(pts) = 3*(v(1) - v(pts-1));
     else
+        %first row
+        M(1, 1:2) = [2 1];
+        b(1) = 3*(v(2) - v(1));
+        %last row
         M(pts, pts-1:pts) = [1 2];
         b(pts) = 3*(v(pts) - v(pts-1));
     end
-    
+
     %solve system
     D = M \ b;
     
