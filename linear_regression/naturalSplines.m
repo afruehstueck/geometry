@@ -18,10 +18,9 @@ function [viewer, points] = naturalSplines()
     x = [];
     y = [];
     
-    y = [-2, -1.4, -1.0, -0.8, 0.8, 1.3, 1.5];
-    x = [-1.1, -3.4, -2., -0.3, 1.2, 1.8, 3.5];
-    %x = fliplr(x);
-    %y = fliplr(y);
+    %x = [-2, -1.4, -1.0, -0.8, 0.8, 1.3, 1.5];
+    %y = [-1.1, -3.4, -2., -0.3, 1.3, 1.8, 3.5];
+   
     %x = -10:10;
     %y = cos(x).*abs(x);
     %[~, y] = noisyFunction(x, .7, @sin);
@@ -31,8 +30,8 @@ function [viewer, points] = naturalSplines()
         mousePicking(fig);
     else %take predefined points
         axis auto;
-        calculateSpline(x, y, 1);
-        calculateSpline(x, y, 2);
+        calculateSpline(x, y);
+        %calculateSpline(x, y, 2);
     end
 end
 

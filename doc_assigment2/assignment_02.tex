@@ -98,9 +98,24 @@ $$y(x, w) = w_0 + \sum_{d=1}^{D}{w_dx^d}$$
 \begin{figure}[H]
 	\includegraphics[width=\linewidth,trim={2.5cm 1.5cm 2.5cm 1.5cm},clip]{img/compare_splines2}
 	\caption{
-		{\footnotesize \textit{blue solid = my implementation, \\red dotted = \emph{MATLAB \texttt{csape}} function,\\green dashed = \emph{MATLAB \texttt{spline}} function.}}\\
+		{\footnotesize 
+			\textit{blue solid = my implementation, \\
+				red dotted = \emph{MATLAB \texttt{csape}} function,\\
+				green dashed = \emph{MATLAB \texttt{spline}} function.}
+		}\\
 		Comparison of different implementations of cubic splines in MATLAB. Note the slightly different results due to differing end conditions.\\My implementation uses $P_0'(0)=0$ and $P_{n-1}'(1)=0$ as end conditions in this instance.
 	}
 	\label{fig:splines2}
+\end{figure}
+\begin{figure}[H]
+	\includegraphics[width=\linewidth,trim={2.5cm 1.5cm 2.5cm 1.5cm},clip]{img/boundary_splines}
+	\caption{
+		Effects of differently chosen boundary conditions on spline generation.\\
+		{\footnotesize 
+			\textit{dotted line: first derivative boundary conditions $P_0'(0)=0$ and $P_{n-1}'(1)=0$\\
+				dashed line: second derivative boundary conditions $P_0''(0)=0$ and $P_{n-1}''(1)=0$}
+		}
+	}
+	\label{fig:splines3}
 \end{figure}
 \end{document}
