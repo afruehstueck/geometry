@@ -46,7 +46,7 @@ function [] = cubic3DSpline(x, y, z, closed)
     abcd_x = evaluate1DSpline(x, closed);
     abcd_y = evaluate1DSpline(y, closed);
     abcd_z = evaluate1DSpline(z, closed);
-    spl = size(abcd_x, 1) %number of splines
+    spl = size(abcd_x, 1); %number of splines
     
     u = linspace(0, 1);
     u3 = u.^3;
