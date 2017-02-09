@@ -9,12 +9,31 @@ function [] = main()
     dimX = [-10, 10];
     dimY = [-5, 5];
     scr = get(0, 'ScreenSize');  
-   
+       
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %   BUNNY dataset (73 data points)            %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %READ DATA FROM FILE
+    data = dlmread('../data/data_bunny.txt'); % read points from ASCII file
+    x = data(1:size(data,1), 1);
+    y = data(1:size(data,1), 2);
+    
+    sizez = size(x, 1);
+    lin = linspace(0, 8*pi, sizez);
+    %choose z-coords along sine curve
+    z = -2*pi + 4*pi * sin(lin);
+    
+    fig_bunny = figure('Name', 'Bunny Viewer', 'NumberTitle', 'off', 'Position', [50 150 scr(3)/2 scr(3)/3]);
+    hold on;
+    axis auto;
+    plot3(x, y, z, 'o');
+    cubicSplines(x, y, z, 1);    
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %   FIVE dataset (94 data points)             %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %READ DATA FROM FILE
-    data = dlmread('data_five.txt'); % read points from ASCII file
+    data = dlmread('../data/data_five.txt'); % read points from ASCII file
     
     x = data(1:size(data,1), 1);
     y = data(1:size(data,1), 2);
@@ -25,25 +44,6 @@ function [] = main()
     z = -100 + 200 * sin(lin);
     
     fig_five = figure('Name', 'Five Viewer', 'NumberTitle', 'off', 'Position', [50 150 scr(3)/2 scr(3)/3]);
-    hold on;
-    axis auto;
-    plot3(x, y, z, 'o');
-    cubicSplines(x, y, z, 1);    
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %   BUNNY dataset (73 data points)            %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %READ DATA FROM FILE
-    data = dlmread('data_bunny.txt'); % read points from ASCII file
-    x = data(1:size(data,1), 1);
-    y = data(1:size(data,1), 2);
-    
-    sizez = size(x, 1);
-    lin = linspace(0, 8*pi, sizez);
-    %choose z-coords along sine curve
-    z = -2*pi + 4*pi * sin(lin);
-    
-    fig_bunny = figure('Name', 'Bunny Viewer', 'NumberTitle', 'off', 'Position', [50 150 scr(3)/2 scr(3)/3]);
     hold on;
     axis auto;
     plot3(x, y, z, 'o');
