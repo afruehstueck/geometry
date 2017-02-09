@@ -4,10 +4,10 @@
 
 %create a 2D view and plot a function
 function [] = regression_inputClick()
-    allowInput = 1;
     clear;
     clc;
     
+    allowInput = 1;
     dimX = [-5, 5];
     dimY = [-5, 5];
 
@@ -29,46 +29,56 @@ function [] = regression_inputClick()
     
     button = 1; 
     while button == 1
-        [x(num), y(num), button] = ginput(1);
-    
-        A = ones(num);
-         
-        for col=1:num-1 
-            A(:, col) = x'.^(num - col);
+        try
+            [x(num), y(num), button] = ginput(1);
+
+            A = ones(num);
+
+            for col=1:num-1 
+                A(:, col) = x'.^(num - col);
+            end
+
+            b = y';
+            %X = linsolve(A, b);
+            X = A \ b;
+
+            cla(fig);
+
+    %         polynomial = '';
+    %         for row=num:-1:1
+    %             coeff = num2str(X(row), 3);
+    %             %exp = num2str(row-1);
+    %             exp = '';
+    %             if row > 2 
+    %                 exp = [ '*x^' num2str(row-1) ];
+    %             elseif row == 2
+    %                 exp = 'x';
+    %             end
+    %             polynomial = [polynomial coeff exp];
+    %             if row>1
+    %                 polynomial = [polynomial '+'];
+    %             end
+    %         end
+    %         title(polynomial);
+            plot(x, y, '*');
+            plot(r, polyval(X, r));
+            num = num + 1;
+
+        catch
+            allowInput = 0;
+            button = 0;
+            fprintf('Figure closed.');
         end
-        
-        b = y';
-        %X = linsolve(A, b);
-        X = A \ b;
-        
-        cla(fig);
-        
-%         polynomial = '';
-%         for row=num:-1:1
-%             coeff = num2str(X(row), 3);
-%             %exp = num2str(row-1);
-%             exp = '';
-%             if row > 2 
-%                 exp = [ '*x^' num2str(row-1) ];
-%             elseif row == 2
-%                 exp = 'x';
-%             end
-%             polynomial = [polynomial coeff exp];
-%             if row>1
-%                 polynomial = [polynomial '+'];
-%             end
-%         end
-%         title(polynomial);
-        plot(x, y, '*');
-        plot(r, polyval(X, r));
-        num = num + 1;
     end
     
     if allowInput == 1
         while ishandle(fig)    
-            prompt = 'Input degree of output polynomial: ';
+            prompt = 'Input degree of output polynomial [press ''Enter'' to exit]: ';
             str = input(prompt, 's');
-            if isempty(str), break, end
+            if isempty(str) 
+                fprintf('Input terminated.');
+                break
+            end
 
             deg = str2num(str);
 

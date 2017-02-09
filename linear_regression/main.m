@@ -1,3 +1,7 @@
+% @file     main.m
+% @author   afruehstueck
+% @date     07/02/2017
+
 function [] = main() 
     clear;
     clc;
@@ -52,7 +56,7 @@ function [] = main()
     b = 0.3; %tightness
     a = 0; %angle
     N = 7; %num curls
-    t = linspace(0, N*2*pi, 100);
+    t = linspace(0, N*2*pi, 70);
     x = t'.* (b * cos(t(:) + a));
     y = t'.* (b * sin(t(:) + a));
     z = -t; %spiral upwards
@@ -70,9 +74,9 @@ function [] = main()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %   2D GENERATED NOISY FUNCTION               %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    x = -25:25;
+    x = linspace(-7*pi,7*pi,12*pi);
     abscos = @(x)cos(x).*abs(x);
-    [foo, y] = noisyFunction(x, 20., abscos);
+    [foo, y] = noisyFunction(x, 6., abscos);
     %[foo, y] = noisyFunction(x, 500., @polynomial, [2.8 -0.3 1.4 3.2]);
     fig_poly = figure('Name', '2D Function', 'NumberTitle', 'off', 'Position', [50 150 scr(3)/2 scr(3)/3]);
     hold on;
@@ -84,11 +88,11 @@ function [] = main()
     %   MOUSE PICKING                             %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-%     fig_picking = figure('Name', 'Pick points', 'NumberTitle', 'off', 'Position', [50 150 scr(3)/2 scr(3)/3]);
-%     hold on;
-%     axis([dimX dimY]);  
-%     
-%     mousePicking(fig_picking, @cubicSplines);
+    fig_picking = figure('Name', 'Pick points', 'NumberTitle', 'off', 'Position', [50 150 scr(3)/2 scr(3)/3]);
+    hold on;
+    axis([dimX dimY]);  
+    
+    mousePicking(fig_picking, @cubicSplines);
 end
 
 function [x, y] = mousePicking(fig, fun) 
@@ -97,21 +101,24 @@ function [x, y] = mousePicking(fig, fun)
     disp('Right mouse button picks last point.')
     % Stores integer value for which button is pressed
     % 1 for left, 2 for middle, 3 for right
-    
     button = 1; 
     pts = 0;
     
     while button == 1
         pts = pts+1;
-        [x(pts), y(pts), button] = ginput(1); %Gets mouse click input
-    
-        cla(fig);
-        plot(x, y, 'o');
-        
-        if pts == 1 %calculate for >=2 points 
-            continue
+        try %catch figure deletion error
+            [x(pts), y(pts), button] = ginput(1); %Gets mouse click input
+            cla(fig);
+            plot(x, y, 'o');
+
+            if pts == 1 %calculate for >=2 points 
+                continue
+            end
+
+            fun(x, y);
+        catch
+            button = 0;
+            fprintf('Figure closed.');
         end
-        
-        fun(x, y);
     end
 end

@@ -32,7 +32,7 @@ function [] = regression_inputFn()
     plot(x, y_noise, '*');
     drawnow;
     
-    prompt = 'Input degree of output polynomial: (press enter to exit) ';
+    prompt = 'Input degree of output polynomial [press ''Enter'' to exit]: ';
     while ishandle(fig)    
         str = input(prompt, 's');
         if isempty(str), break, end
