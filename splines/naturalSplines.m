@@ -2,120 +2,128 @@
 % @author   afruehstueck
 % @date     07/02/2017
 
-%create a 2D view and plot a function
-function [viewer, points] = naturalSplines()
-    clear;
-    clc;
+%evaluate arguments and pick corresponding spline function
+function [viewer, points] = naturalSplines(x, y, z, closed)
+    if ~exist('closed', 'var')
+        closed = 0;
+    end
 
-    dimX = [-10, 10];
-    dimY = [-5, 5];
-
-    scr = get(0, 'ScreenSize');  
-    fig = figure('Name', '2D Viewer', 'NumberTitle', 'off', 'Position', [scr(3)/2 50 scr(3)/3 scr(3)/3]);
-    hold on;
-    axis([dimX dimY]);    
-
-    x = [];
-    y = [];
-    
-    %x = [-2, -1.4, -1.0, -0.8, 0.8, 1.3, 1.5];
-    %y = [-1.1, -3.4, -2., -0.3, 1.3, 1.8, 3.5];
-   
-    %x = -10:10;
-    %y = cos(x).*abs(x);
-    %[~, y] = noisyFunction(x, .7, @sin);
-    %[~, y] = noisyFunction(x, 1000., @polynomial, [2.8 -0.3 1.4 3.2]);
-    
-    if length(x) == 0 && length(y) == 0 %do mousepicking
-        mousePicking(fig);
-    else %take predefined points
-        axis auto;
-        calculateSpline(x, y);
-        %calculateSpline(x, y, 2);
+    if ~exist('z', 'var') || isempty(z) || ~any(z) %2 dimensional
+        cubic2DSpline(x, y, closed);
+    else %3 dimensional
+        cubic3DSpline(x, y, z, closed);
     end
 end
 
-function [] = mousePicking(fig) 
-    % Give instructions
-    disp('Left mouse button picks points.')
-    disp('Right mouse button picks last point.')
-    % Stores integer value for which button is pressed
-    % 1 for left, 2 for middle, 3 for right
+%calculates spline for two-dimensional input
+function [] = cubic2DSpline(x, y, closed)    
+    abcd_x = evaluate1DSpline(x, closed);
+    abcd_y = evaluate1DSpline(y, closed);
+    spl = size(abcd_x, 1); %number of splines
     
-    button = 1; 
-    pts = 0;
-    
-    while button == 1
-        pts = pts+1;
-        [x(pts), y(pts), button] = ginput(1); %Gets mouse click input
-        
-        if pts == 1 %calculate spline for >=2 points 
-            continue
-        end
-        
-        cla(fig);
-        calculateSpline(x, y);
-    end
-end
-
-function [] = calculateSpline( x, y, boundary )
-    if (~exist('boundary', 'var'))
-        boundary = 1;
-    end
-    pts = length(x);
-    spl = pts - 1; %number of splines
-
-    msz = 4*spl; %matrix size
-    A = zeros(msz);
-    b = zeros(msz, 1);
-
-    for i = 1:spl %fill matrix 'cells' for each segment
-        idx = (i-1)*4+1; %upper left matrix position of current segment
-        n = i;      %current point index
-        m = i+1;    %next point index (for readability)
-
-        A(idx,   idx:idx+3) = [x(n)^3	x(n)^2	x(n) 1]; %p(x_i)   = y_i
-        A(idx+1, idx:idx+3) = [x(m)^3   x(m)^2	x(m) 1]; %p(x_i+1) = y_i+1
-        b(idx)      = y(i);
-        b(idx+1)	= y(i+1);
-
-        if i<spl %relations to next segment
-            A(idx+2, idx:idx+7)	= [3*x(m)^2	2*x(m) 1 0	-3*x(m)^2	-2*x(m)	-1 0]; %first derivative has to be equal
-            A(idx+3, idx:idx+7)	= [6*x(m)	2	   0 0	-6*x(m)     -2     	 0 0]; %second derivative has to be equal
-        end
-    end
-
-    if boundary == 1    
-        A(msz-1, 1:4)       = [3*x(1)^2     2*x(1)	 1 0]; %first derivative = 0 condition for first point
-        A(msz,   msz-3:msz)	= [3*x(pts)^2	2*x(pts) 1 0]; %first derivative = 0 condition for last point
-    elseif boundary == 2
-        A(msz-1, 1:4)       = [6*x(1)	2 0 0]; %second derivative = 0 condition for first point
-        A(msz,   msz-3:msz)	= [6*x(pts) 2 0 0];  %second derivative = 0 condition for last point
-    end
-
-    X = A \ b;
-    
-    plot(x, y, 'o'); %plot control points as red circles
+    u = linspace(0, 1);
+    u3 = u.^3;
+    u2 = u.^2;
     
     for i = 1:spl %step through segments
-        idx = (i-1)*4+1;
-        u = linspace(x(i),x(i+1));
-        pu = X(idx).*u.^3 + X(idx+1).*u.^2 + X(idx+2).*u + X(idx+3);
+        c_x = abcd_x(i,:);
+        c_y = abcd_y(i,:);
         
+        p_x = c_x(4).*u3 + c_x(3).*u2 + c_x(2).*u + c_x(1);
+        p_y = c_y(4).*u3 + c_y(3).*u2 + c_y(2).*u + c_y(1);
+
         %plot spline segment
-        plot(u,pu,'-');
+        plot(p_x, p_y,'-');
+    end
+end
+
+%calculates spline for three-dimensional input
+function [] = cubic3DSpline(x, y, z, closed)
+    if (~exist('closed', 'var'))
+        closed = 0;
     end
     
-%     xx=linspace(x(1),x(pts));
-%     pp = csape(x,y,'clamped',[0 0]);
-%     yy0 = ppval(pp,xx);
-%     plot(xx,yy0,'.r')
-    %plot(x,y,'go')
+    abcd_x = evaluate1DSpline(x, closed);
+    abcd_y = evaluate1DSpline(y, closed);
+    abcd_z = evaluate1DSpline(z, closed);
+    spl = size(abcd_x, 1); %number of splines
     
-    %MATLAB spline function (for comparison)
-    %it has a different boundary condition
-%     xx=linspace(x(1),x(pts));
-%     zz=spline(x,y,xx);
-%     plot(xx,zz,'g--');
-    %xx=linspace
-end        
+    u = linspace(0, 1);
+    u3 = u.^3;
+    u2 = u.^2;
+    
+    for i = 1:spl %step through segments
+        c_x = abcd_x(i,:);
+        c_y = abcd_y(i,:);
+        c_z = abcd_z(i,:);
+        
+        p_x = c_x(4).*u3 + c_x(3).*u2 + c_x(2).*u + c_x(1);
+        p_y = c_y(4).*u3 + c_y(3).*u2 + c_y(2).*u + c_y(1);
+        p_z = c_z(4).*u3 + c_z(3).*u2 + c_z(2).*u + c_z(1);
+
+        %plot spline segment
+        plot3(p_x, p_y, p_z,'-')
+    end
+end
+
+function abcd = evaluate1DSpline( v, closed ) 
+    pts = length(v);
+    spl = pts - 1; %number of splines
+
+    M = zeros(pts);
+    b = zeros(pts, 1);
+
+%           M       .   D     =         b   
+%     [ 2 1        ] [ D(1) ]   [ 3(x(2) - x(1))   ]
+%     | 1 4 1      | | D(2) |   | 3(x(3) - x(1))   |
+%     |   1 4 1    | |  .   | = |       .          |
+%     |     .....  | |  .   |   |       .          |
+%     |      1 4 1 | |  .   |   | 3(x(n) - x(n-2)) |
+%     [        1 2 ] [ D(n) ]   [ 3(x(n) - x(n-1)) ]
+       
+    for i = 2:pts-1
+        M(i, i-1:i+1) = [1 4 1];
+        b(i) = 3*(v(i+1) - v(i-1));
+    end
+
+    %different edge conditions for closed or open spline curve
+    if closed == 1
+        %first row
+        M(1, 1:2) = [4 1];
+        M(1, pts) = 1;
+        b(1) = 3*(v(2) - v(pts));
+        %last row
+        M(pts, 1) = 1;
+        M(pts, pts-1:pts) = [1 4];
+        b(pts) = 3*(v(1) - v(pts-1));
+    else
+        %first row
+        M(1, 1:2) = [2 1];
+        b(1) = 3*(v(2) - v(1));
+        %last row
+        M(pts, pts-1:pts) = [1 2];
+        b(pts) = 3*(v(pts) - v(pts-1));
+    end
+
+    %solve system
+    D = M \ b;
+    
+    %store coefficients
+    abcd = zeros(spl, 4);
+    for i = 1:spl %step through segments
+        a = v(i);
+        b = D(i);
+        c = 3*(v(i+1) - v(i)) - 2*D(i) - D(i+1);
+        d = 2*(v(i) - v(i+1)) + D(i) + D(i+1);
+        abcd(i, :) = [a b c d];
+    end   
+    
+    if closed == 1 %add another segment for closing the curve
+        a = v(pts);
+        b = D(pts);
+        c = 3*(v(1) - v(pts)) - 2*D(pts) - D(1);
+        d = 2*(v(pts) - v(1)) + D(pts) + D(1);
+        
+        abcd(spl+1, :) = [a b c d];
+    end
+end
