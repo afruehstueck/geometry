@@ -24,8 +24,9 @@ function [V,F] = read_obj(filename)
   line = fgets(fid);
   
   %progress output
-  fn = strsplit(filename,'/');
-  fn = fn{end};
+  %fn = strsplit(filename,'/');
+  %fn = fn{end};
+  fn = filename;
   lPrompt = 10; %length of command window prompt: this may vary depending on MATLAB version
   vct = 0;
   fct = 0;
