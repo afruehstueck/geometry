@@ -6,9 +6,9 @@ clc;
 clear;
 %[V, F] = read_obj('../data/shuttle.obj');          %  ~300 vertices
 %[V, F] = read_obj('../data/magnolia.obj');         %  ~800 vertices
-[V, F] = read_obj('../data/teddy.obj');            % ~1500 vertices
+%[V, F] = read_obj('../data/teddy.obj');            % ~1500 vertices
 %[V, F] = read_obj('../data/bunny.obj');            % ~2500 vertices
-%[V, F] = read_obj('../data/teapot.obj');           % ~3600 vertices
+[V, F] = read_obj('../data/teapot.obj');           % ~3600 vertices
 %[V, F] = read_obj('../data/lamp.obj');             % ~4400 vertices
 %[V, F] = read_obj('../data/cow.obj');              % ~4500 vertices
 %[V, F] = read_obj('../data/pumpkin.obj');          % ~5000 vertices
