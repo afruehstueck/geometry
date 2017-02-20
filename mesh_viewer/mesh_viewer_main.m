@@ -1,6 +1,10 @@
+% @file     mesh_viewer_main.m
+% @author   anna fruehstueck
+% @date     10/02/2017
+
 clc;
 clear;
-[V, F] = read_obj('../data/shuttle.obj');          %  ~300 vertices
+%[V, F] = read_obj('../data/shuttle.obj');          %  ~300 vertices
 %[V, F] = read_obj('../data/magnolia.obj');         %  ~800 vertices
 %[V, F] = read_obj('../data/teddy.obj');            % ~1500 vertices
 %[V, F] = read_obj('../data/bunny.obj');            % ~2500 vertices
@@ -10,12 +14,12 @@ clear;
 %[V, F] = read_obj('../data/pumpkin.obj');          % ~5000 vertices
 %[V, F] = read_obj('../data/suzanne.obj');          % ~7800 vertices
 %[V, F] = read_obj('../data/trumpet.obj');          %~11900 vertices
-%[V, F] = read_obj('../data/minicooper.obj');       %big!  ~44000 vertices
+[V, F] = read_obj('../data/minicooper.obj');       %big!  ~44000 vertices
 %[V, F] = read_obj('../data/tyrannosaurus.obj');	%BIG! ~100000 vertices
 %[V, F] = read_obj('../data/armadillo.obj');        %BIG! ~106200 vertices
 
+S = calc_adj(F);
 scr = get(0, 'ScreenSize'); 
-
 fig = figure('Name', '2D Viewer', 'NumberTitle', 'off', 'Position', [scr(3)/2 50 scr(3)/3 scr(3)/3]);
 hold on;
 axis vis3d;

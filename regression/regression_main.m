@@ -1,3 +1,6 @@
+% @file     regression_main.m
+% @author   afruehstueck
+% @date     11/02/2017
 
 clear;
 clc;

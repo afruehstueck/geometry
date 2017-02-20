@@ -1,7 +1,8 @@
-clc;
-clear;
-[V, F] = read_obj('../data/trumpet.obj'); 
+% @file     calc_adj.m
+% @author   anna fruehstueck
+% @date     18/02/2017
 
+function [S] = calc_adj(F)
 % tic;
 % nrows = size(F, 1);
 % pairs = [];
@@ -21,7 +22,7 @@ clear;
 
 lPrompt = 10; %length of command window prompt: this may vary depending on MATLAB version
 
-fprintf('\n\n');
+fprintf('\n\n\n');
 
 str = sprintf('generating adjacency matrix: %d%%', 0);
 fprintf(str);
@@ -50,3 +51,5 @@ entries = length(ind)
 toc;
 
 S = sparse(ind(1:entries,1), ind(1:entries,2), ones(entries, 1), entries, entries);
+spy(S)
+end
