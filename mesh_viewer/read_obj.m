@@ -88,5 +88,9 @@ function [V,F] = read_obj(filename)
     end
     line = fgets(fid);
   end
+%   elems = all(F);
+%   if elems(4) == 0
+%       F(:,4)=[]
+%   end
   fclose(fid);
 end

@@ -2,7 +2,7 @@
 % @author   anna fruehstueck
 % @date     18/02/2017
 
-function [S] = calc_adjacent_faces(F)
+function [FxF] = calc_adjacent_faces(F)
 % UNFORTUNATELY SUPER INEFFICIENT
 % tic;
 % nrows = size(F, 1);
@@ -27,9 +27,9 @@ fprintf(str);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 tic;
-num_rows = size(F, 1);
+num_faces = size(F, 1);
 indices = [];
-for k=1:num_rows-1 %iterate over all rows
+for k=1:num_faces-1 %iterate over all faces
     common_vertices = ismember(F(k:end, :), F(k, :));
     rows = sum(common_vertices, 2) == 2; % check if at least 2 elements are common
     rows(1) = false; %exclude self-similarity
@@ -42,7 +42,7 @@ for k=1:num_rows-1 %iterate over all rows
     %calculation progress output
     if mod(k, 100) == 0
         lStr = length(str);
-        str = sprintf('generating face adjacency matrix... %d%%', round(100*k/num_rows));
+        str = sprintf('generating face adjacency matrix... %d%%', round(100*k/num_faces));
         [char(8)*ones(1, lStr + lPrompt), str]
     end
 end
@@ -51,5 +51,5 @@ indices = [indices; fliplr(indices)]; %preserve symmetry
 entries = length(indices)
 toc;
 
-S = sparse(indices(1:entries,1), indices(1:entries,2), ones(entries, 1), length(F), length(F));
+FxF = sparse(indices(1:entries,1), indices(1:entries,2), ones(entries, 1), length(F), length(F));
 end

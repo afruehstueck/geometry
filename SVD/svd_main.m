@@ -6,9 +6,9 @@ clc;
 clear;
 
 %impath = '../data/bunny.jpg';
-impath = '../data/stripes.png';
+%impath = '../data/stripes.png';
 %impath = '../data/zebra.jpg';
-%impath = '../data/flower.jpg';
+impath = '../data/flower.jpg';
 %impath = '../data/carpet.jpg';
 %impath = '../data/stripes_diagonal.jpg';
 %impath = '../data/loops.jpg';
@@ -38,8 +38,9 @@ for channel = 1:size(img, 3)
 end
 
 figure('Name', 'low-rank approximation for N singular values', 'NumberTitle', 'off');
-h = 2; w = 4; %number of subplots
+
 t = [1, 3, 5, 10, 25, 50, 100, 200]; %numbers of used singular values 
+w = 4; h = ceil(length(t) / 4); %number of subplots
 meanErrs = [];
 nVals = [];
 [ha, pos] = tight_subplot(h*2, w, .01, .05, .02); %using tight_subplot because subfigures leave so much unused space
@@ -53,20 +54,22 @@ for idx = 1:length(t)
         D = U(:, :, channel) * C * V(:, :, channel)'; %reconstruct low-rank approximation
         reconstruction = cat(3, reconstruction, D);  
     end
-    row = floor((idx-1) / w);
     
-    axes(ha(idx + row*w));%position in subplot
+    row = floor((idx - 1) / w); %find out current row in plot
+    
+    axes(ha(idx + row * w)); %position in subplot
     imshow(reconstruction);
-
     title(sprintf('N = %d', N));  
     
+    %calculate mean squared error
     error=sum(sum(sum((img - reconstruction).^2)));
     meanErrs = [meanErrs; error];
     nVals = [nVals; N];
     
-    axes(ha(idx + w + row*w)); %position in subplot
+    axes(ha(idx + (row + 1) * w)); %position in subplot
+    
     %imshow(img - reconstruction);
-    imshow(imcomplement(img - reconstruction)); %showing the complement since it is much easier to see (my subjective opinion)
+    imshow(1 - (img - reconstruction)); %showing the inverse since it is much easier to see (my subjective opinion)
 end
 
 % dislay the error graph

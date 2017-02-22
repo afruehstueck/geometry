@@ -1,24 +1,36 @@
 % @file     calc_adjacent_vertices.m
 % @author   anna fruehstueck
 % @date     18/02/2017
-function [S] = calc_adjacent_vertices(V, F)
+
+function [VxV, FxV] = calc_adjacent_vertices(V, F)
 str = sprintf('generating vertex adjacency matrix...');
 fprintf(str);
 
 tic;
-num_rows = size(F, 1);
-indices = [];
+num_faces = size(F, 1);
+vert_ind = [];
+face_vert_ind = [];
 
-for k=1:num_rows %iterate over all faces
+for k=1:num_faces %iterate over all faces
     vertices = F(k, :);
     edges = nchoosek(vertices, 2); %look at all pairs of vertices
-    indices = [indices; edges];
+    vert_ind = [vert_ind; edges];
+    
+    %[repmat(k, length(vertices), 1), vertices']
+    face_vert_ind = [face_vert_ind; [repmat(k, length(vertices), 1), vertices']];
 end
-
-indices = unique(indices, 'rows'); %remove duplicates
-entries = length(indices)
-
+%tmp = vert_ind;
+%length(vert_ind)
+vert_ind = [vert_ind; fliplr(vert_ind)]; %symmetry
+%length(vert_ind)
+vert_ind = unique(vert_ind, 'rows'); %remove duplicates
+%isequal(vert_ind, tmp)
+entries = length(vert_ind)
 toc;
 
-S = sparse(indices(1:entries,1), indices(1:entries,2), ones(entries, 1), length(V), length(V));
+VxV = sparse(vert_ind(1:entries,1), vert_ind(1:entries,2), ones(entries, 1), length(V), length(V));
+
+face_vert_ind = unique(face_vert_ind, 'rows'); %remove duplicates
+entries = length(face_vert_ind)
+FxV = sparse(face_vert_ind(1:entries,1), face_vert_ind(1:entries,2), ones(entries, 1), length(F), length(V));
 end
