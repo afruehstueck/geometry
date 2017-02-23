@@ -19,7 +19,6 @@ tic;
     for i=1:num_vertices %iterate over all vertices      
         v_i = V(i,:);
         [adj_face_indices,~] = find(FxV(:, i));
-        adj_faces = F(adj_face_indices, :);
   
         [adj_vertices, ~] = find(VxV(:, i));
         num_verts = size(adj_vertices, 1);
@@ -40,8 +39,8 @@ tic;
             %Ns(f, :) = c;% / norm(c);   
         end
         %TODO
-        A = 3 / sum(areas);
-        L(i,:) = A * accum;
+        %A = 3 / sum(areas);
+        L(i,:) = accum / num_verts;
     end
 toc;
 end
@@ -56,13 +55,16 @@ tic;
         v_i = V(i,:);
         [adj_face_indices,~] = find(FxV(:, i));
         adj_faces = F(adj_face_indices, :);
-  
+        
+        %adj_faces = sort(adj_faces, 2)
+        %adj_faces = unique(adj_faces, 'rows') %remove duplicates
+        
         [adj_vertices, ~] = find(VxV(:, i));
-        num_verts = size(adj_vertices, 1);
+        num_adj_verts = size(adj_vertices, 1);
         
         areas = 0.0;
         accum = [ 0 0 0 ];
-        for f=1:num_verts
+        for f=1:num_adj_verts
             j = adj_vertices(f);
             v_j = V(j,:);
             
@@ -77,6 +79,11 @@ tic;
             triangles = adj_faces(rows, :);
             lin = find(triangles~=i & triangles~= j); %find adjacent vertices to [v_i, v_j]
             v_inds = triangles(lin); %get indices 
+            
+            if(length(v_inds) ~= 2) 
+                disp(length(v_inds))
+            end
+        
             v_k = V(v_inds,:); %get coordinates
             
             d_ik = v_i - v_k;
