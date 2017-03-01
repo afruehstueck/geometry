@@ -13,7 +13,7 @@ function [] = splines_main()
 %%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % LOAD AND CONNECT 3D VERTICES fun, but makes only limited sense ;) %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     [V, ~] = read_obj('../data/cow.obj');
+%     [V, ~] = read_obj('../data/mesh/cow.obj');
 %     x = V(:, 1);
 %     y = V(:, 2);
 %     z = V(:, 3);
@@ -28,7 +28,7 @@ function [] = splines_main()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
     %READ DATA FROM FILE
-    data = dlmread('../data/data_bunny.txt'); % read points from ASCII file
+    data = dlmread('../data/points/data_bunny.txt'); % read points from ASCII file
     x = data(1:size(data,1), 1);
     y = data(1:size(data,1), 2);
     
@@ -47,7 +47,7 @@ function [] = splines_main()
     %   FIVE dataset (94 data points)             %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %READ DATA FROM FILE
-    data = dlmread('../data/data_five.txt'); % read points from ASCII file
+    data = dlmread('../data/points/data_five.txt'); % read points from ASCII file
     
     x = data(1:size(data,1), 1);
     y = data(1:size(data,1), 2);
