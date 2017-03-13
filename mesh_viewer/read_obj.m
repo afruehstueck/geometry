@@ -61,16 +61,28 @@ function [V,F] = read_obj(filename)
                 F(face_index + 1, :) = [values(3:4); values(1)];
                 face_index = face_index + 2;
             else
-                values6 = sscanf(remain, '%d//%d %d//%d %d//%d');
+                values6a = sscanf(remain, '%d/%d %d/%d %d/%d');
+                values6b = sscanf(remain, '%d//%d %d//%d %d//%d');
                 values9 = sscanf(remain, '%d/%d/%d %d/%d/%d %d/%d/%d');
-                if size(values6, 1) == 6 %face with normal indices
+                values8 = sscanf(remain, '%d/%d %d/%d %d/%d %d/%d');
+                if size(values6a, 1) == 6 %face with normal indices
                     % remove normal
-                    F(face_index,:) = values6(1:2:end);
+                    F(face_index,:) = values6a(1:2:end);
+                    face_index = face_index + 1;
+                elseif size(values6b, 1) == 6 %face with normal and texture indices
+                    % remove normal
+                    F(face_index,:) = values6b(1:2:end);
                     face_index = face_index + 1;
                 elseif size(values9, 1) == 9 %face with normal and texture indices
                     % remove normal and texture indices
                     F(face_index,:) = values9(1:3:end);
                     face_index = face_index + 1;
+                elseif size(values8, 1) == 8 %face with normal indices
+                    % remove normal and texture indices
+                    vals = values8(1:2:end);
+                    F(face_index, :) = vals(1:3);
+                    F(face_index + 1, :) = [vals(3:4); vals(1)];
+                    face_index = face_index + 2;
                 end
             end
             

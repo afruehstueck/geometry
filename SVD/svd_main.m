@@ -5,13 +5,13 @@ close all
 clc;
 clear;
 
-%impath = '../data/bunny.jpg';
-%impath = '../data/stripes.png';
-%impath = '../data/zebra.jpg';
-impath = '../data/flower.jpg';
-%impath = '../data/carpet.jpg';
-%impath = '../data/stripes_diagonal.jpg';
-%impath = '../data/loops.jpg';
+impath = '../data/img/bunny.jpg';
+%impath = '../data/img/stripes.png';
+%impath = '../data/img/zebra.jpg';
+%impath = '../data/img/flower.jpg';
+%impath = '../data/img/carpet.jpg';
+%impath = '../data/img/stripes_diagonal.jpg';
+%impath = '../data/img/loops.jpg';
 img = imread(impath);
 
 doRGB = 1;
@@ -74,8 +74,8 @@ end
 
 % dislay the error graph
 figure('Name', 'Error graph', 'NumberTitle', 'off'); 
-title('Error in low-rank approximation');
 plot(nVals, meanErrs);
+title('Mean squared error in low-rank approximation');
 grid on
 xlabel('N');
 ylabel('error');

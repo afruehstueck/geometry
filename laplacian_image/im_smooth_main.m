@@ -6,11 +6,11 @@ clc;
 clear;
 
 %impath = '../data/img/bunny.jpg';
-impath = '../data/img/sloth_mini.jpg';
+impath = '../data/img/sloth.jpg';
 %impath = '../data/img/flower.jpg';
 
 %impath = '../data/img/stripes.png';
-impath = '../data/img/zebra.jpg';
+%impath = '../data/img/zebra.jpg';
 %impath = '../data/img/stripes_diagonal.jpg';
 %impath = '../data/img/loops.jpg';
 img = imread(impath);
@@ -21,8 +21,8 @@ laplace2  = [1 1 1; 1 -8 1; 1 1 1];
 doRGB = 1;
 lambda = 0.25; %limit to break the filtering at 0.25 | <0.01, change visually not really noticeable
 iterations = 100;
-filtertype = string('matrix'); %'filter2' or 'circshift' implemented
-filter = laplace2;
+filtertype = string('filter2'); %'filter2' or 'circshift' implemented
+filter = laplace1;
 
 if size(img, 3) == 3 && ~doRGB
     disp('convert image to grayscale...');
@@ -49,16 +49,20 @@ end
 
 disp(['Laplacian matrix is ', msg]);
 
-L_eval = laplacian_matrix(50, 50);
+L_eval = laplacian_matrix(30, 30);
 condition_number = condest(L_eval);
-disp(['Condition number for ', num2str(num_px), 'x', num2str(num_px), ' laplacian matrix: ', num2str(condition_number)]);
+disp(['Condition number for ', num2str(30), 'x', num2str(30), ' laplacian matrix: ', num2str(condition_number)]);
 determinant = det(L_eval);
 disp(['Determinant: ', num2str(determinant)]);
 [U, V] = eig(full(L_eval));
 plot(1:length(V), diag(V))
-title('2500x2500 laplacian matrix')
+title('900x900 laplacian matrix')
 xlabel('index')
 ylabel('eigenvalues')
+
+figure;
+spy(L_eval);
+title('sparse 900x900 laplacian matrix');
 
 condition_number = condest(L);
 disp(['Condition number for ', num2str(num_px), 'x', num2str(num_px), ' laplacian matrix: ', num2str(condition_number)]);
@@ -74,7 +78,6 @@ for t = 1:iterations
     img_filtered = [];
     for c = 1:size(img, 3)
         channel = img(:, :, c);
-        
         switch filtertype
             case 'filter2'
                 tmp_img = padarray(channel, [1 1], 'replicate');

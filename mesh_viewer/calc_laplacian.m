@@ -2,17 +2,15 @@
 % @author   anna fruehstueck
 % @date     21/02/2017
 
-function [L, W, K] = calc_laplacian(type, V, F, FxV, VxV) 
+function [M, D, K] = calc_laplacian(type, V, F, FxV, VxV) 
     K = 0;
-    W = 0;
-    if strcmp(type, 'uniform_vector')
-        [L] = calc_uniform_laplacian_vector(V, F, FxV, VxV);
-    elseif strcmp(type, 'uniform')
-        [L, W] = calc_uniform_laplacian(V, F, FxV, VxV);
+    D = 0;
+    if strcmp(type, 'uniform')
+        [M, D] = calc_uniform_laplacian(V, F, FxV, VxV);
+    elseif strcmp(type, 'cotan_old')
+        [M, D, K] = calc_cotan_laplacian_per_triangle_pair(V, F, FxV, VxV);
     elseif strcmp(type, 'cotan')
-        [L, W] = calc_cotan_laplacian(V, F, FxV, VxV);
-    elseif strcmp(type, 'cotan_vector')
-        [L, K] = calc_cotan_laplacian_vector(V, F, FxV, VxV);
+        [M, D, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV);
     end
 end
 
@@ -29,11 +27,21 @@ function [L, W] = calc_uniform_laplacian(V, F, FxV, VxV)
         sp_L = [sp_L; [repmat(i, num_adj_verts, 1) adj_verts ones(num_adj_verts, 1)]];
     end
     
+%     disp(['minmax uniform L: [', num2str(min(sp_L(:, 3))), ',', num2str(max(sp_L(:, 3))), ']']);   
+%     disp(['minmax uniform W: [', num2str(min(sp_W)), ',', num2str(max(sp_W)), ']']);                    
+%     
+%     sorted_L = sort(sp_L(:, 3), 'descend');
+%     sorted_W = sort(sp_W, 'descend');
+%     disp(['sorted uniform L: ', num2str(sorted_L(1:12,:)'), ' ... ', num2str(sorted_L(end-12:end,:)')]);   
+%     disp(['sorted uniform W: ', num2str(sorted_W(1:12,:)'), ' ... ', num2str(sorted_W(end-12:end,:)')]);   
+%     
     L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
     W = spdiags(sp_W, 0, num_vertices, num_vertices);
 end
 
-function [L, W] = calc_cotan_laplacian3(V, F, FxV, VxV) 
+%try to step through incident triangles and calculate voronoi area
+%triangle-wise
+function [L, W] = calc_cotan_laplacian_per_triangle(V, F, FxV, VxV) 
     num_vertices = size(VxV, 1);
 
     sp_L = [];
@@ -52,7 +60,8 @@ function [L, W] = calc_cotan_laplacian3(V, F, FxV, VxV)
         
         accum_area = 0;
         %step through neighborhood of v_i
-        sum_w = 0;        
+        sum_w = 0;     
+        cur_L = zeros(2*num_adj_triangles, 3);
         for n = 1:num_adj_triangles
             tri = adj_triangles(n, :);
             j = tri(1);
@@ -60,52 +69,68 @@ function [L, W] = calc_cotan_laplacian3(V, F, FxV, VxV)
             vj = V(j, :);
             vk = V(k, :);
             
-            ij = vj - vi;
-            ik = vk - vi;
-            kj = vj - vk;
-            l_ij = norm(ij);
-            l_ik = norm(ik);
-            l_kj = norm(kj);
+            ij = vj - vi; ji = -ij;
+            ik = vk - vi; ki = -ik;
+            kj = vj - vk; jk = -kj;
             
-            angle_i = acos(dot(ij / l_ij, ik / l_ik));
-            angle_j = acos(dot(-ij / l_ij, -kj / l_kj));
-            angle_k = acos(dot(-ik / l_ik, kj / l_kj));
+            %angle_j = atan2(norm(cross(ji, jk)), dot(ji, jk)); %numerically more stable than calculating the acos
+            %angle_k = atan2(norm(cross(ki, kj)), dot(ki, kj));
+            %cotan_j = cot(angle_j);
+            %cotan_k = cot(angle_k);
             
-            cotan_j = cot(angle_j);
-            cotan_k = cot(angle_k);
-            %cotans = dot(ki, kj, 2) ./ sqrt(sum(cross(ki, kj, 2).^2,2));
-            
-            sp_L = [sp_L; [i j 0.5*cotan_j]];
-            sp_L = [sp_L; [i k 0.5*cotan_k]];
-            sum_w = sum_w + 0.5*(cotan_j + cotan_k);
-                    
-            tri_area = norm(cross(ij, ik)) / 2;
-            if is_obtuse([vi; vj; vk]) %check left triangle
-                if angle_i > pi/2
-                    area = tri_area / 2;
-                else
-                    area = tri_area / 4;
-                end
-            else
-                area = (l_ik^2*cotan_j + l_ij^2*cotan_k) / 8;
-            end
-            
-            accum_area = accum_area + area;     
+            cotan_j = dot(ji, jk) ./ norm(cross(ji, jk));
+            cotan_k = dot(ki, kj) ./ norm(cross(ki, kj));
+            %cotan_j = max(cotan_j, 0);
+            %cotan_k = max(cotan_k, 0);
+
+            cur_L((2*n)-1:2*n, :) = [i j cotan_k; i k cotan_j];
+            sum_w = sum_w + cotan_j + cotan_k;
+               
+            area = norm(cross(ij, ik)) / 2;
+%             if is_obtuse([vi; vj; vk]) %check left triangle
+%                 %angle_i = acos(dot(-(ji / l_ji), -(ki / l_ki)));
+%                 nc_ij_ik = norm(cross(ij, ik));
+%                 angle_i = atan2(nc_ij_ik, dot(ij, ik));
+%                 tri_area = nc_ij_ik / 2;
+%                 if angle_i > pi/2
+%                     area = tri_area / 2;
+%                 else
+%                     area = tri_area / 4;
+%                 end
+%             else
+%                 area = (norm(ji)^2*cotan_j + norm(ki)^2*cotan_k) / 8;
+%             end
+            accum_area = accum_area + (area/3);     
         end
-        
+        sp_L = [sp_L; cur_L];
         sp_L = [sp_L; [i i -sum_w]];
-        sp_W(i) = 1/ (2 * accum_area);
+%         if(accum_area < 3)
+%             sp_W(i) = 0;
+%         else
+            sp_W(i) = 1 / (2 * accum_area); %gets completely wonky when area gets small
+%         end
+        
     end
-                        
+    
+%     disp(['cotan L: [', num2str(min(sp_L(:, 3))), ',', num2str(max(sp_L(:, 3))), ']']);   
+%     disp(['cotan W: [', num2str(min(sp_W)), ',', num2str(max(sp_W)), ']']);
+%     sorted_L = sort(sp_L(:, 3), 'descend');
+%     sorted_W = sort(sp_W, 'descend');
+%     disp(['cotan uniform L: ', num2str(sorted_L(1:12,:)'), ' ... ', num2str(sorted_L(end-12:end,:)')]);   
+%     disp(['cotan uniform W: ', num2str(sorted_W(1:12,:)'), ' ... ', num2str(sorted_W(end-12:end,:)')]);   
+%     
     L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
     W = spdiags(sp_W, 0, num_vertices, num_vertices);
 end
 
-function [L, W] = calc_cotan_laplacian2(V, F, FxV, VxV) 
+%trying to step through neighboring triangles two at a time 
+function [L, W, K] = calc_cotan_laplacian_per_triangle_pair(V, F, FxV, VxV) 
     num_vertices = size(VxV, 1);
 
     sp_L = [];
-    sp_W = zeros(num_vertices, 1);
+    accum_areas = zeros(num_vertices, 1);
+    accum_ws = zeros(num_vertices, 1);
+    K = zeros(num_vertices, 1);
     
     for i=1:num_vertices %iterate over all vertices  
         vi = V(i, :);
@@ -142,9 +167,7 @@ function [L, W] = calc_cotan_laplacian2(V, F, FxV, VxV)
             kj = vj - vks;
 
             cotans = dot(ki, kj, 2) ./ sqrt(sum(cross(ki, kj, 2).^2,2));
-
             w = sum(cotans); % 
-            w = max(0, w);
             
             sp_L = [sp_L; [i j w]];
             sum_w = sum_w + w;
@@ -155,40 +178,240 @@ function [L, W] = calc_cotan_laplacian2(V, F, FxV, VxV)
             l_ij = norm(ij);
             l_ik = norm(ik);
             l_kj = norm(kj);
+            u_ij = ij/l_ij;
+            u_ik = ik/l_ik;
+            u_kj = kj/l_kj;
+            
+            angle_i = acos(dot(u_ij, u_ik));
+            K(i) = K(i) + angle_i;
             tri_area = norm(cross(ij, ik)) / 2;
             if is_obtuse([vi; vj; vks(1, :)]) %check left triangle
-                angle_i = acos(dot(ij / l_ij, ik / l_ik));
                 if angle_i > pi/2
                     area = tri_area / 2;
                 else
                     area = tri_area / 4;
                 end
             else
-                angle_j = acos(dot(-ij / l_ij, -kj / l_kj));
-                angle_k = acos(dot(-ik / l_ik, kj / l_kj));
+                angle_j = acos(dot(-u_ij, -u_kj));
+                angle_k = acos(dot(-u_ik, u_kj));
 
                 area = (l_ik^2/tan(angle_j) + l_ij^2/tan(angle_k)) / 8;
             end
-            
             accum_area = accum_area + area;
-            %accum_area = accum_area + area;
             
             %move to right triangle
             k_left = j;         
             j = k_right;
             ct = ct-1;
-        end
-        %accum_area = accum_area / sum_w;
-        
+        end        
         sp_L = [sp_L; [i i -sum_w]];
-        sp_W(i) = 1/ (2 * accum_area);
+        accum_areas(i) = accum_area;
+        accum_ws(i) = sum_w;
+        %sp_W(i) = 1 / (2 * accum_area);
     end
-                        
+                    
     L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
+    K = (2*pi - K) ./ accum_area;
+    %sp_W = (2 * accum_areas).^(-1);
+    sp_W = (2 * accum_ws).^(-1);
     W = spdiags(sp_W, 0, num_vertices, num_vertices);
 end
 
 function [L, W] = calc_cotan_laplacian(V, F, FxV, VxV) 
+    num_vertices = size(VxV, 1);
+
+    sp_L = [];%zeros(num_vertices*num_vertices, 3);
+    sp_W = zeros(num_vertices, 1);
+   
+%     min_adj_faces = 10000;
+%     max_adj_faces = 0;
+    for i=1:num_vertices %iterate over all vertices  
+        v_i = V(i, :);
+        [adj_verts, ~] = find(VxV(:, i));
+        num_adj_verts = size(adj_verts, 1);
+         
+        [adj_faces, ~] = find(FxV(:, i));
+        adj_triangles = F(adj_faces, :);
+        num_adj_faces = size(adj_faces, 1);
+        
+%         min_adj_faces = min(num_adj_faces, min_adj_faces);
+%         max_adj_faces = max(num_adj_faces, max_adj_faces);
+              
+        %step through neighborhood of v_i
+        sum_A = 0;
+      
+        num_new_entries = num_adj_verts + 1;
+        cur_L = zeros(num_new_entries, 3);
+        
+        for f=1:num_adj_verts
+            j = adj_verts(f);
+            v_j = V(j, :); 
+            [rows, ~] = find(adj_triangles == j);
+            cur_triangles = adj_triangles(rows, :);
+            ind_ks = cur_triangles(cur_triangles~=j & cur_triangles~=i);
+            v_ks = V(ind_ks, :);
+            vec_ij = v_j - v_i;
+            vec_ki = v_i - v_ks;
+            vec_kj = v_j - v_ks;
+            
+            quots = sqrt(sum(cross(vec_ki, vec_kj, 2).^2, 2));
+            
+            cotans = dot(vec_ki, vec_kj, 2) ./ quots;
+                
+            w = sum(cotans);  
+            %w = max(0, w);
+            %tri_areas = sqrt(sum((cross(repmat(vec_ij, size(v_ks, 1), 1), v_ks, 2)).^2, 2)) / 2;
+            tri_areas = quots / 2;
+            
+            l_ij_sq = norm(vec_ij)^2;
+            voronoi_areas = (cotans .* l_ij_sq);
+            %add thirds of triangle areas
+            sum_A = sum_A + sum(tri_areas) / 3;
+            %sum_A = sum_A + sum(voronoi_areas);
+            cur_L(f, :) = [i j w];
+        end
+        
+        sum_w = sum(cur_L(:, 3));
+        %cur_L(:, 3) = cur_L(:, 3) ./ sum_w;
+        cur_L(num_new_entries, :) = [i i -sum_w];
+        
+        sp_L = [sp_L; cur_L];              
+        
+        %sum_A = sum_A / 8;
+        
+        %sp_W(i) = 1 / sum_A;
+
+        %sp_W(i) = 1 / sum_A; %each triangle area was taken twice, which eliminates the 2*A
+        
+        sp_W(i) = 1/(2 * sum_w);
+    end
+    
+    L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
+    W = spdiags(sp_W, 0, num_vertices, num_vertices);
+end
+
+%step through all faces stored in face list and calculate contributions of
+%each face to adjacent vertices
+function [L, M, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)  
+    num_vertices = size(VxV, 1);
+    num_faces = size(F, 1);
+    
+    %collect contributions for sparse matrix in sp_L: 
+    %3 entries per vertex, 3 vertices per face
+    sp_L_1 = zeros(num_faces * 9, 1);
+    sp_L_2 = zeros(num_faces * 9, 1);
+    sp_L_3 = zeros(num_faces * 9, 1);
+    
+    K = zeros(num_vertices, 1);
+    ctK = zeros(num_vertices, 1); %counts number of faces contributing to vertex (debug!)
+    
+    mixed_voronoi_areas = zeros(num_vertices, 1);
+    voronoi_areas = zeros(num_vertices, 1);
+    simple_triangle_areas = zeros(num_vertices, 1);
+   
+    permutations = [1 2 3; 
+                    2 3 1; 
+                    3 1 2]; %all combinations of indices
+                 
+    Ps = permutations(:, 1); %current points P
+    Qs = permutations(:, 2); %adjacent points Q
+    Rs = permutations(:, 3); %adjacent points R
+        
+    max_angle = 0;
+    min_angle = 4*pi;
+    
+    %calculating for all triangle vertices simultaneously:
+    %current vertex is called P, adjacent vertices R and Q
+    for f=1:num_faces 
+        vert_inds = F(f, :)';
+        verts = V(vert_inds, :);
+        
+        %edges pointing from P to Q
+        edgesPQ = verts(Qs, :) - verts(Ps, :);
+        %edges pointing from P to R
+        edgesPR = verts(Rs, :) - verts(Ps, :);
+        
+        %calculate area for current triangle
+        tri_area = norm(cross(edgesPQ(1, :), edgesPR(1, :))) / 2;
+        
+        l_edgesPR = sqrt(sum(edgesPR.^2, 2));
+        l_edgesPQ = sqrt(sum(edgesPQ.^2, 2));
+        
+        %normalize edges
+        edgesPR = edgesPR ./ l_edgesPR;
+        edgesPQ = edgesPQ ./ l_edgesPQ;
+        
+        %angles in P
+        %angles = acos(dot(edgesPR, edgesPQ, 2));
+        %replace dot product by faster version
+        angles = acos(sum(conj(edgesPR) .* edgesPQ, 2));
+        
+        %evaluate if angles are obtuse
+        obtuse_angles = angles > (pi/2);
+        obtuse_triangle = any(obtuse_angles);
+        
+        %DEBUG
+        max_angle = max(max(angles), max_angle);
+        min_angle = min(min(angles), min_angle);
+        
+        %add up angles at vertices
+        K(vert_inds) = K(vert_inds) + angles;
+        ctK(vert_inds) = ctK(vert_inds) + [1; 1; 1];
+        
+        %cotangent values for angles at vertices P, Q, R
+        cotangents = cot(angles);
+
+        %ARBITRARY CRASH CONDITION FOR DEBUGGING
+%         if f>10 
+%             K(vert_inds) = K(vert_inds, 1:2) + angles;
+%         end
+%          sp_L(f*9-8:f*9, :) = [vert_inds(Ps) vert_inds(Ps) -(cotangents(Rs) + cotangents(Qs)); 
+%                                vert_inds(Ps) vert_inds(Qs) cotangents(Rs); 
+%                                vert_inds(Ps) vert_inds(Rs) cotangents(Qs)];
+        sp_L_1(f*9-8:f*9, :) = repmat(vert_inds(Ps), 3, 1);
+        sp_L_2(f*9-8:f*9, :) = [vert_inds(Ps); vert_inds(Qs); vert_inds(Rs)];
+        sp_L_3(f*9-8:f*9, :) = [-(cotangents(Rs) + cotangents(Qs)); cotangents(Rs); cotangents(Qs)];
+        %clamp cotangents to zero for area computation
+        cotangents = max(cotangents, [0; 0; 0]);
+        voronoi = (l_edgesPQ.^2 .* cotangents(Rs) + l_edgesPR.^2 .* cotangents(Qs)) / 8;
+
+        %put area three times in column vector
+        tri_areas = repmat(tri_area, 3, 1);
+        
+        %for obtuse triangles, use half or quarter area, for non-obtuse triangles, use voronoi area
+        sums_mixed = obtuse_triangle * (obtuse_angles .* (tri_areas ./ 2) + ~obtuse_angles .* (tri_areas ./ 4)) + ~obtuse_triangle * voronoi;
+        
+        mixed_voronoi_areas(vert_inds)   = mixed_voronoi_areas(vert_inds) + sums_mixed;
+        voronoi_areas(vert_inds)         = voronoi_areas(vert_inds) + voronoi;
+        simple_triangle_areas(vert_inds) = simple_triangle_areas(vert_inds) + (tri_areas ./ 3);
+    end
+    
+    areas = mixed_voronoi_areas;
+    
+    %clamp small areas?????????
+    areas = max(areas, 0.1 * ones(num_vertices, 1));
+   
+    disp(['min/max total angle: ', num2str(min(K)), ', ', num2str(max(K))]); 
+    K = (2*pi - K) ./ areas;
+    
+    disp(['min/max angle: ', num2str(min_angle), ', ', num2str(max_angle)]); 
+    
+    disp(['min/max tri areas: ', num2str(min(simple_triangle_areas)), ', ', num2str(max(simple_triangle_areas))]); 
+    disp(['min/max mixed voronoi areas: ', num2str(min(mixed_voronoi_areas)), ', ', num2str(max(mixed_voronoi_areas))]); 
+    disp(['min/max voronoi areas: ', num2str(min(voronoi_areas)), ', ', num2str(max(voronoi_areas))]); 
+    disp(['min/max curvature: ', num2str(min(K)), ', ', num2str(max(K))]); 
+    
+    %sp_M = ones(num_vertices, 1);
+    sp_M = (areas.*2).^(-1);
+    disp(['min/max weights: ', num2str(min(sp_M)), ', ', num2str(max(sp_M))]); 
+    
+    L = sparse(sp_L_1, sp_L_2, sp_L_3);
+    %sparse mass matrix
+    %sp_M = sp_M / ((-1) * diag(L));
+    M = spdiags(sp_M, 0, num_vertices, num_vertices);
+end
+
+function [L, W] = calc_cotan_laplacian4(V, F, FxV, VxV) 
     num_vertices = size(VxV, 1);
 
     sp_L = [];
@@ -201,12 +424,12 @@ function [L, W] = calc_cotan_laplacian(V, F, FxV, VxV)
          
         [adj_faces, ~] = find(FxV(:, i));
         adj_triangles = F(adj_faces, :);
-        num_adj_triangles = size(adj_triangles, 1);
               
         %step through neighborhood of v_i
         sum_w = 0;
         sum_A = 0;
-      
+        
+        cur_L = zeros(num_adj_verts + 1, 3);
         for f=1:num_adj_verts
             j = adj_verts(f);
             vj = V(j, :); 
@@ -214,43 +437,33 @@ function [L, W] = calc_cotan_laplacian(V, F, FxV, VxV)
             cur_triangles = adj_triangles(rows, :);
             ind_ks = cur_triangles(cur_triangles~=j & cur_triangles~=i);
             vks = V(ind_ks, :);
+            
             ij = vj - vi;
             ki = vi - vks;
             kj = vj - vks;
             
-            %if is_obtuse([vi, vj, 
-            
             cotans = dot(ki, kj, 2) ./ sqrt(sum(cross(ki, kj, 2).^2,2));
                 
-            tri_areas = sqrt(sum((cross(repmat(ij, size(vks,1), 1), vks, 2)).^2,2)) / 2;
-            w = sum(cotans); % 0.5 *   
-            w = max(0, w);
-%             if w < 0
-%                 A = sum(tri_areas) / 6;
-%             else    
-%                 A = (1/8) * w * norm(vi - vj)^2;
-%             end
-            %w = max(0, w);
-%             if w < 0 %angles obtuse
-%                 w = 0;%accum_voronoi + w;% * lenji;
-%                 %w = max(0, w); %exclude negative weights
-%             end            
-            sum_w = sum_w + w;
-            sum_A = sum_A + sum(tri_areas) / 6;
+            tri_areas = sqrt(sum((cross(repmat(ij, size(vks, 1), 1), vks, 2)).^2,2)) / 2;
+            w = sum(cotans);   
+            
+            sum_A = sum_A + sum(tri_areas) / 3;
                        
-            sp_L = [sp_L; [i j w]];
+            cur_L(f, :) = [i j w];
         end
-        sp_L = [sp_L; [i i -sum_w]];
-        %disp(['1/2sumw = ', num2str(1/(2*sum_w))]);
-        %disp(['sumA/sumw = ', num2str(sum_A/sum_w)]);
-        %sp_W(i) = 1/(2 * sum_A);
-        sp_W(i) = sum_A/sum_w;
+        
+        sum_A = sum_A / 2; %every triangle area was taken twice
+        %cur_L(:, 3) = cur_L(:, 3) ./ (2 * sum_A);
+        
+        sum_w = sum(cur_L(:, 3));
+        cur_L(num_adj_verts + 1, :) = [i i -sum_w];
+        
+        sp_L = [sp_L; cur_L];  
+        sp_W(i) = 1 /(2 * sum_A);
     end
     L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
     W = spdiags(sp_W, 0, num_vertices, num_vertices);
 end
-
-
        
 %         for f=1:num_adj_triangles
 %             cur_triangle = adj_triangles(f, :);
@@ -296,114 +509,11 @@ end
 %             accum_area = accum_area + (tri_area / 3);
 %         end
 
-function [L] = calc_uniform_laplacian_vector(V, F, FxV, VxV) 
-    num_vertices = size(V, 1);
-    L = zeros(num_vertices, 3);
-    
-    for i=1:num_vertices %iterate over all vertices      
-        [adj_vertices, ~] = find(VxV(:, i));
-        num_adjacent_vertices = numel(adj_vertices);
-        
-        accum = sum(V(adj_vertices, :)) - num_adjacent_vertices * V(i,:); %avoid loop at the cost of readability ;)
-
-%         for f=1:num_adjacent_vertices
-%             j = adj_vertices(f);
-%             %v_ij = V(j,:) - V(i,:); 
-%             accum = accum + V(j,:);  
-%         end
-        L(i,:) = accum;% / num_adjacent_vertices;
-    end
-end
-
-function [L, K] = calc_cotan_laplacian_vector(V, F, FxV, VxV) 
-    num_vertices = size(V, 1);
-    
-    L = zeros(num_vertices, 3);
-    K = zeros(num_vertices, 1);
-    
-    for i=1:num_vertices %iterate over all vertices  
-        vi = V(i, :);
-        [adj_vertices, ~] = find(VxV(:, i));
-        num_adj_vertices = size(adj_vertices, 1);
-         
-        %[i, s, j] = find(FxV(:, i))
-        
-        [adj_faces, ~] = find(FxV(:, i));
-        adj_triangles = F(adj_faces, :);
-        num_adj_triangles = size(adj_triangles, 1);
-        
-        accum_vectors = [ 0 0 0 ];
-        accum_area = 0;
-        accum_voronoi = 0;
-        accum_angle = 0;
-        
-        for f=1:num_adj_triangles
-            cur_triangle = adj_triangles(f, :);
-            cur_triangle = cur_triangle(cur_triangle~=i); %remove center point
-            o_verts = V(cur_triangle, :);
-            vec1 = o_verts(1, :) - vi;
-            vec2 = o_verts(2, :) - vi;
-            
-            %angle in vi
-            angle_vi = acos(dot(vec1 / norm(vec1), vec2 / norm(vec2)));
-            %triangle area
-            area = norm(cross(vec1, vec2))/2;
-            
-            vec1_o1 = -vec1;
-            vec2_o1 = o_verts(2, :) - o_verts(1, :);
-            angle_o1 = acos(dot(vec1_o1 / norm(vec1_o1), vec2_o1 / norm(vec2_o1), 2));
-            
-            vec1_o2 = -vec2;
-            vec2_o2 = -vec2_o1;
-            angle_o2 = acos(dot(vec1_o2 / norm(vec1_o2), vec2_o2 / norm(vec2_o2), 2));
-            
-            %voronoi area
-            voronoi_area = (1/8)*( norm(vec1)^2/tan(angle_o2) + norm(vec2)^2/tan(angle_o1) ); 
-            
-            accum_voronoi = accum_voronoi + voronoi_area;
-            accum_angle = accum_angle + angle_vi;
-            accum_area = accum_area + area / 3;
-        end
-        
-        K(i) = (2*pi - accum_angle) / accum_voronoi;
-        
-        %step through neighborhood of v_i
-        for f=1:num_adj_vertices
-            j = adj_vertices(f);
-            vj = V(j, :);
-            ij = vj - vi; 
-            
-            [rows, ~] = find(adj_triangles == j);
-            cur_triangles = adj_triangles(rows, :);
-            ind_ks = cur_triangles(cur_triangles~=j & cur_triangles~=i);
-            vks = V(ind_ks, :);
-            ki = vi - vks;
-            kj = vj - vks;
-            
-%             angles = acos(dot(sqrt(sum(abs(ki).^2,2)), sqrt(sum(abs(kj).^2,2)),2));
-%             cotans = cot(angles);
-
-%             cotan1 = dot(ki(1,:), kj(1,:)) / norm(cross(ki(1,:), kj(1,:)))
-%             cotan2 = dot(ki(2,:), kj(2,:)) / norm(cross(ki(2,:), kj(2,:)));
-            
-            cotans = dot(ki, kj, 2) ./ sqrt(sum(cross(ki, kj, 2).^2,2));
-            w = sum(cotans);
-            
-            accum_vectors = accum_vectors + w * ij;  
-        end
-        
-        L(i,:) = accum_vectors / (2 * accum_area);
-    end
-end
-
-
-
 %see http://mathworld.wolfram.com/ObtuseTriangle.html
 function result = is_obtuse(vertices)
-    ind = [1 2; 1 3; 2 3]; %all combinations of indices
-    rem = [3; 2; 1]; %remaining point
-    edges = vertices(ind(:,2),:) - vertices(ind(:,1),:);
-    edgessq = sum(abs(edges).^2,2); %row-wise norm squared
-    compare = (edgessq(ind(:,1),:) + edgessq(ind(:,2),:) < edgessq(rem(:,1),:)); %evaluate all a^2 + b^2 < c^2
+    perm = [1 2 3; 2 3 1; 3 1 2]; %all combinations of indices
+    edges = vertices(perm(:,3), :) - vertices(perm(:,2), :);
+    sq_edge_lengths = sum(abs(edges).^2, 2); %row-wise norm squared
+    compare = (sq_edge_lengths(perm(:, 2), :) + sq_edge_lengths(perm(:, 3), :) < sq_edge_lengths(perm(:, 1), :)); %evaluate all a^2 + b^2 < c^2
     result = any(compare); %is any of the inequalities true
 end

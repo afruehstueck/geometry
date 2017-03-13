@@ -28,7 +28,7 @@ vert_ind = unique(vert_ind, 'rows'); %remove duplicates
 entries = length(vert_ind)
 toc;
 
-VxV = sparse(vert_ind(1:entries,1), vert_ind(1:entries,2), ones(entries, 1), length(V), length(V));
+VxV = sparse(vert_ind(1:entries, 1), vert_ind(1:entries, 2), ones(entries, 1), length(V), length(V));
 
 face_vert_ind = unique(face_vert_ind, 'rows'); %remove duplicates
 entries = length(face_vert_ind)
