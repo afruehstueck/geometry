@@ -14,13 +14,16 @@ impath = '../data/img/cat.jpg';
 %impath = '../data/img/turing.jpg';
 %impath = '../data/img/zebra.jpg';
 
+shapepath_3 = '../data/img/shape_3.jpg';
+shapepath_8 = '../data/img/shape_8.jpg';
+
 img = imread(impath);
 %convert image to black and white
 BWimg = im2bw(img, 0.5);
 [img_y, img_x] = size(img(:, :, 1));
 se = [];
 se_idx = 1;
-se_sz = floor(img_x / 30);
+se_sz = floor(img_x / 20);
 
 %define a series of structure elements
 se = cat(3, se, strel('line', 2*se_sz, 90));
@@ -28,11 +31,19 @@ se = cat(3, se, strel('square', 2*se_sz));
 se = cat(3, se, strel('disk', se_sz));
 se = cat(3, se, strel('diamond', se_sz));
 se = cat(3, se, strel('rectangle', [se_sz, 2*se_sz]));
+
 shape = zeros(2*se_sz,2*se_sz);
 shape(1:5, 1:5) = ones(5, 5);
 shape(1:5, end-4:end) = ones(5, 5);
 shape(end-4:end, se_sz-2:se_sz+2) = ones(5, 5);
 se = cat(3, se, strel('arbitrary', shape));
+
+%load strel from image
+shape_8 = im2bw(imread(shapepath_8), 0.5);
+se = cat(3, se, strel('arbitrary', shape_8));
+
+shape_3 = im2bw(imread(shapepath_3), 0.5);
+se = cat(3, se, strel('arbitrary', shape_3));
 
 n_se = length(se);
 w = 6;
