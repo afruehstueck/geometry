@@ -27,14 +27,6 @@ function [L, W] = calc_uniform_laplacian(V, F, FxV, VxV)
         sp_L = [sp_L; [repmat(i, num_adj_verts, 1) adj_verts ones(num_adj_verts, 1)]];
     end
     
-%     disp(['minmax uniform L: [', num2str(min(sp_L(:, 3))), ',', num2str(max(sp_L(:, 3))), ']']);   
-%     disp(['minmax uniform W: [', num2str(min(sp_W)), ',', num2str(max(sp_W)), ']']);                    
-%     
-%     sorted_L = sort(sp_L(:, 3), 'descend');
-%     sorted_W = sort(sp_W, 'descend');
-%     disp(['sorted uniform L: ', num2str(sorted_L(1:12,:)'), ' ... ', num2str(sorted_L(end-12:end,:)')]);   
-%     disp(['sorted uniform W: ', num2str(sorted_W(1:12,:)'), ' ... ', num2str(sorted_W(end-12:end,:)')]);   
-%     
     L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
     W = spdiags(sp_W, 0, num_vertices, num_vertices);
 end

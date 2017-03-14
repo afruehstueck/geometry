@@ -11,7 +11,7 @@ set(0,'DefaultFigureColormap', viridis)
 %[V, F] = read_obj('../data/mesh/mushroom.obj');         % ~200 vertices
 %[V, F] = read_obj('../data/mesh/shuttle.obj');          % ~300 vertices
 %[V, F] = read_obj('../data/mesh/mannequin.obj');        % ~400 vertices
-%[V, F] = read_obj('../data/mesh/simple_bunny.obj');     % ~500 vertices
+[V, F] = read_obj('../data/mesh/simple_bunny.obj');     % ~500 vertices
 %[V, F] = read_obj('../data/mesh/iris.obj');             % ~1100 vertices
 %[V, F] = read_obj('../data/mesh/teddy.obj');            % ~1500 vertices
 %[V, F] = read_obj('../data/mesh/sphere.obj');           % ~2500 vertices
