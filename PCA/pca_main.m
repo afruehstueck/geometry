@@ -7,34 +7,44 @@ clc;
 clear;
 
 %% PARAMETERS: select 2D or 3D data
+%load 3D data from file
+pcpath = 'teapot.ply';
+pcpath = '../data/pointcloud/face.ply';
+%pcpath = '../data/pointcloud/woman.ply';
+%pcpath = '../data/pointcloud/bunny.ply';
+%pcpath = '../data/pointcloud/lobster.ply';
+pcpath = '../data/pointcloud/pepper.ply';
+
 dims = 3; %set to 2 or 3
 randomRotation = true; %apply random rotation to data for more interesting results
 loadFromFile = true; %true = load file, false = generate random data
 N = 5000; %number of randomly generated data points
 
-%load 3D data from file
-pcpath = 'teapot.ply';
-%pcpath = '../data/pointcloud/face.ply';
-%pcpath = '../data/pointcloud/woman.ply';
-%pcpath = '../data/pointcloud/bunny.ply';
-%pcpath = '../data/pointcloud/lobster.ply';
-pcpath = '../data/pointcloud/pepper.ply';
+evaluatePCA(dims, randomRotation, loadFromFile, pcpath, N);
 
 %load 2D data from file
 csvpath = '../data/csv/freshman_kgs.csv';
 csvpath = '../data/csv/heightweight_7500.csv';
 csvpath = '../data/csv/snakes_count_1000.csv';
 
+dims = 2; %set to 2 or 3
+randomRotation = true; %apply random rotation to data for more interesting results
+loadFromFile = false; %true = load file, false = generate random data
+N = 5000; %number of randomly generated data points
+evaluatePCA(dims, randomRotation, loadFromFile, csvpath, N);
+
+function evaluatePCA(dims, randomRotation, loadFromFile, path, N)
+
 %% load or generate data
 if dims == 2 && loadFromFile
     %load data from file
-    data = csvread(csvpath);
+    data = csvread(path);
 elseif dims == 2
     %create randomized 2D data
     data = [random(makedist('Normal'), N, 1) random(makedist('Logistic'), N, 1)];
 elseif dims == 3 && loadFromFile
     %load data from file
-    pcloud = pcread(pcpath);
+    pcloud = pcread(path);
     data = pcloud.Location;
     
     %subsample 3D data for big files > 15000pts
@@ -91,6 +101,33 @@ eVecs = eVecs(:, order);
 
 % project the centralized original data set to new basis
 data_PCAbasis = data_centered * eVecs;
+
+figure1 = figure('Name', 'PCA Individual Steps', 'NumberTitle', 'off', 'Position', get(0, 'ScreenSize'));
+if dims == 2 
+    subplot(1,3,1);
+    plot(data(:, 1), data(:, 2), '.')
+    title('Original data');
+    
+    subplot(1,3,2);
+    plot(data_centered(:, 1), data_centered(:, 2), '.')
+    title('Centered data');
+    
+    subplot(1,3,3);
+    plot(data_PCAbasis(:, 1), data_PCAbasis(:, 2), '.')
+    title('Data in PCA basis');
+elseif dims == 3
+    subplot(1,3,1);
+    pcshow(data);
+    title('Original data');
+    
+    subplot(1,3,2);
+    pcshow(data_centered);
+    title('Centered data');
+    
+    subplot(1,3,3);
+    pcshow(data_PCAbasis);
+    title('Data in PCA basis');
+end
 
 %find minima, maxima and ranges
 minima = min(data_PCAbasis, [], 1);
@@ -192,15 +229,4 @@ title('SVD');
 link = linkprop(plts, {'CameraPosition', 'CameraUpVector'} );
 rotate3d on
 
-% %matlab princomp
-% subplot(1,2,2);
-% hold on;
-% if dims == 3
-%     pcshow(data_centered);
-%     labels = {'X1' 'X2' 'X3'};
-% else
-%     plot(data_centered(:, 1), data_centered(:, 2), 'g.')
-%     labels = {'X1' 'X2'};
-% end
-% [pc,score,latent,tsquare] = princomp(data);
-% biplot(pc(1:dims,1:dims), 'VarLabels', labels)
+end
