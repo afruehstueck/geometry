@@ -158,7 +158,7 @@ function [L, W, K] = calc_cotan_laplacian_per_triangle_pair(V, F, FxV, VxV)
             ki = vi - vks;
             kj = vj - vks;
 
-            cotans = dot(ki, kj, 2) ./ sqrt(sum(cross(ki, kj, 2).^2,2));
+            cotans = dot(ki, kj, 2) ./ norm_per_row(cross(ki, kj, 2));
             w = sum(cotans); % 
             
             sp_L = [sp_L; [i j w]];
@@ -246,7 +246,7 @@ function [L, W] = calc_cotan_laplacian(V, F, FxV, VxV)
             vec_ki = v_i - v_ks;
             vec_kj = v_j - v_ks;
             
-            quots = sqrt(sum(cross(vec_ki, vec_kj, 2).^2, 2));
+            quots = norm_per_row(cross(vec_ki, vec_kj, 2));
             
             cotans = dot(vec_ki, vec_kj, 2) ./ quots;
                 
@@ -282,17 +282,20 @@ function [L, W] = calc_cotan_laplacian(V, F, FxV, VxV)
     W = spdiags(sp_W, 0, num_vertices, num_vertices);
 end
 
-%step through all faces stored in face list and calculate contributions of
-%each face to adjacent vertices
-function [L, M, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)  
+% step through all faces stored in face list and calculate contributions of
+% each face to adjacent vertices
+% M = matrix of vertex weights, 
+% D = diag matrix of areas, 
+% K = curvature
+function [M, D, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)  
     num_vertices = size(VxV, 1);
     num_faces = size(F, 1);
     
     %collect contributions for sparse matrix in sp_L: 
     %3 entries per vertex, 3 vertices per face
-    sp_L_1 = zeros(num_faces * 9, 1);
-    sp_L_2 = zeros(num_faces * 9, 1);
-    sp_L_3 = zeros(num_faces * 9, 1);
+    sp_M_col1 = zeros(num_faces * 9, 1);
+    sp_M_col2 = zeros(num_faces * 9, 1);
+    sp_M_col3 = zeros(num_faces * 9, 1);
     
     K = zeros(num_vertices, 1);
     ctK = zeros(num_vertices, 1); %counts number of faces contributing to vertex (debug!)
@@ -325,9 +328,9 @@ function [L, M, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
         
         %calculate area for current triangle
         tri_area = norm(cross(edgesPQ(1, :), edgesPR(1, :))) / 2;
-        
-        l_edgesPR = sqrt(sum(edgesPR.^2, 2));
-        l_edgesPQ = sqrt(sum(edgesPQ.^2, 2));
+
+        l_edgesPR = norm_per_row(edgesPR);
+        l_edgesPQ = norm_per_row(edgesPQ);
         
         %normalize edges
         edgesPR = edgesPR ./ l_edgesPR;
@@ -338,6 +341,10 @@ function [L, M, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
         %replace dot product by faster version
         angles = acos(sum(conj(edgesPR) .* edgesPQ, 2));
         
+        %cotans = dot(ki, kj, 2) ./ sqrt(sum(cross(edgesPR, edgesPQ, 2).^2,2));
+        
+        %angles = atan2(sqrt(sum(cross(edgesPR, edgesPQ, 2).^2, 2)), sum(conj(edgesPR) .* edgesPQ, 2));
+            
         %evaluate if angles are obtuse
         obtuse_angles = angles > (pi/2);
         obtuse_triangle = any(obtuse_angles);
@@ -352,7 +359,6 @@ function [L, M, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
         
         %cotangent values for angles at vertices P, Q, R
         cotangents = cot(angles);
-
         %ARBITRARY CRASH CONDITION FOR DEBUGGING
 %         if f>10 
 %             K(vert_inds) = K(vert_inds, 1:2) + angles;
@@ -360,20 +366,24 @@ function [L, M, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
 %          sp_L(f*9-8:f*9, :) = [vert_inds(Ps) vert_inds(Ps) -(cotangents(Rs) + cotangents(Qs)); 
 %                                vert_inds(Ps) vert_inds(Qs) cotangents(Rs); 
 %                                vert_inds(Ps) vert_inds(Rs) cotangents(Qs)];
-        sp_L_1(f*9-8:f*9, :) = repmat(vert_inds(Ps), 3, 1);
-        sp_L_2(f*9-8:f*9, :) = [vert_inds(Ps); vert_inds(Qs); vert_inds(Rs)];
-        sp_L_3(f*9-8:f*9, :) = [-(cotangents(Rs) + cotangents(Qs)); cotangents(Rs); cotangents(Qs)];
+        %first three: diagonal entries, then three entries for the mixed
+        %contributions
+        sp_M_col1(f*9-8:f*9, :) = [vert_inds(Ps); vert_inds(Ps); vert_inds(Ps)];
+        sp_M_col2(f*9-8:f*9, :) = [vert_inds(Ps); vert_inds(Qs); vert_inds(Rs)];
+        sp_M_col3(f*9-8:f*9, :) = [(cotangents(Rs) + cotangents(Qs)); -cotangents(Rs); -cotangents(Qs)];
+        
         %clamp cotangents to zero for area computation
         cotangents = max(cotangents, [0; 0; 0]);
+        
         voronoi = (l_edgesPQ.^2 .* cotangents(Rs) + l_edgesPR.^2 .* cotangents(Qs)) / 8;
 
         %put area three times in column vector
         tri_areas = repmat(tri_area, 3, 1);
         
         %for obtuse triangles, use half or quarter area, for non-obtuse triangles, use voronoi area
-        sums_mixed = obtuse_triangle * (obtuse_angles .* (tri_areas ./ 2) + ~obtuse_angles .* (tri_areas ./ 4)) + ~obtuse_triangle * voronoi;
+        areas_mixed = obtuse_triangle * (obtuse_angles .* (tri_areas ./ 2) + ~obtuse_angles .* (tri_areas ./ 4)) + ~obtuse_triangle * voronoi;
         
-        mixed_voronoi_areas(vert_inds)   = mixed_voronoi_areas(vert_inds) + sums_mixed;
+        mixed_voronoi_areas(vert_inds)   = mixed_voronoi_areas(vert_inds) + areas_mixed;
         voronoi_areas(vert_inds)         = voronoi_areas(vert_inds) + voronoi;
         simple_triangle_areas(vert_inds) = simple_triangle_areas(vert_inds) + (tri_areas ./ 3);
     end
@@ -381,26 +391,23 @@ function [L, M, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
     areas = mixed_voronoi_areas;
     
     %clamp small areas?????????
-    areas = max(areas, 0.1 * ones(num_vertices, 1));
+    areas = max(areas, 0.2 * ones(num_vertices, 1));
    
-    disp(['min/max total angle: ', num2str(min(K)), ', ', num2str(max(K))]); 
+    %disp(['min/max total angle: ', num2str(min(K)), ', ', num2str(max(K))]); 
     K = (2*pi - K) ./ areas;
     
+    sp_D = 1 ./ (areas .* 2);
+   
     disp(['min/max angle: ', num2str(min_angle), ', ', num2str(max_angle)]); 
-    
     disp(['min/max tri areas: ', num2str(min(simple_triangle_areas)), ', ', num2str(max(simple_triangle_areas))]); 
     disp(['min/max mixed voronoi areas: ', num2str(min(mixed_voronoi_areas)), ', ', num2str(max(mixed_voronoi_areas))]); 
     disp(['min/max voronoi areas: ', num2str(min(voronoi_areas)), ', ', num2str(max(voronoi_areas))]); 
     disp(['min/max curvature: ', num2str(min(K)), ', ', num2str(max(K))]); 
+    disp(['min/max weights: ', num2str(min(sp_D)), ', ', num2str(max(sp_D))]); 
     
-    %sp_M = ones(num_vertices, 1);
-    sp_M = (areas.*2).^(-1);
-    disp(['min/max weights: ', num2str(min(sp_M)), ', ', num2str(max(sp_M))]); 
-    
-    L = sparse(sp_L_1, sp_L_2, sp_L_3);
-    %sparse mass matrix
-    %sp_M = sp_M / ((-1) * diag(L));
-    M = spdiags(sp_M, 0, num_vertices, num_vertices);
+    M = sparse(sp_M_col1, sp_M_col2, sp_M_col3);
+    %sparse diagonal area matrix
+    D = spdiags(sp_D, 0, num_vertices, num_vertices);
 end
 
 function [L, W] = calc_cotan_laplacian4(V, F, FxV, VxV) 
@@ -434,9 +441,9 @@ function [L, W] = calc_cotan_laplacian4(V, F, FxV, VxV)
             ki = vi - vks;
             kj = vj - vks;
             
-            cotans = dot(ki, kj, 2) ./ sqrt(sum(cross(ki, kj, 2).^2,2));
+            cotans = dot(ki, kj, 2) ./ norm_per_row(cross(ki, kj, 2));
                 
-            tri_areas = sqrt(sum((cross(repmat(ij, size(vks, 1), 1), vks, 2)).^2,2)) / 2;
+            tri_areas = norm_per_row(cross(repmat(ij, size(vks, 1), 1), vks, 2)) / 2;
             w = sum(cotans);   
             
             sum_A = sum_A + sum(tri_areas) / 3;
@@ -508,4 +515,8 @@ function result = is_obtuse(vertices)
     sq_edge_lengths = sum(abs(edges).^2, 2); %row-wise norm squared
     compare = (sq_edge_lengths(perm(:, 2), :) + sq_edge_lengths(perm(:, 3), :) < sq_edge_lengths(perm(:, 1), :)); %evaluate all a^2 + b^2 < c^2
     result = any(compare); %is any of the inequalities true
+end
+
+function N = norm_per_row(M) 
+    N = sqrt(sum(M.^2, 2));
 end

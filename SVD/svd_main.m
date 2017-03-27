@@ -37,7 +37,7 @@ for channel = 1:size(img, 3)
     V = cat(3, V, v);
 end
 
-figure('Name', 'low-rank approximation for N singular values', 'NumberTitle', 'off');
+figure('Name', 'low-rank approximation for N singular values', 'NumberTitle', 'off', 'Position', get(0, 'ScreenSize'));
 
 t = [1, 3, 5, 10, 25, 50, 100, 200]; %numbers of used singular values 
 w = 4; h = ceil(length(t) / 4); %number of subplots

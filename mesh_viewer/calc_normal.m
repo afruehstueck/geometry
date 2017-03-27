@@ -16,6 +16,7 @@ function [N] = calc_normal(V, F, FxV)
 %          c = cross((v2 - v1), (v3 - v1));
 %          N(k, :) = c / norm(c);
 %     end
+
 tic;
 % Vertex normals
     num_vertices = size(V, 1);
