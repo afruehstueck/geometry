@@ -10,7 +10,7 @@ function lloyd(N, max_iterations, max_error, seed_from_center)
         seed_from_center = false;
 
         % iterate until error gets small
-        max_error = 1e-4;
+        max_error = 1e-8;
         % additional constraint to avoid iterating forever
         max_iterations = 500;
     end
@@ -27,6 +27,7 @@ function lloyd(N, max_iterations, max_error, seed_from_center)
         pts_y = rand(N, 1);
     end
         
+    %initialize centroids
     cts_x = ones(N, 1);
     cts_y = ones(N, 1);
     
@@ -47,9 +48,6 @@ function lloyd(N, max_iterations, max_error, seed_from_center)
         cells_plots(idx) = patch(pts_x(idx), pts_y(idx), colors(idx, :));
     end
     
-    % initialize error measure
-    errors = ones(N, 1);
-    
     % plot containing the current points - colormap shows the current error
     % for each point: the more yellow it gets, the smaller the error
     pts_plot = scatter(pts_x, pts_y, 300, 'r.');
@@ -60,7 +58,9 @@ function lloyd(N, max_iterations, max_error, seed_from_center)
     cts_plot = plot(pts_x, pts_y, 'wo', 'MarkerSize', 8, 'LineWidth', 2);
     
     cur_iteration = 0;
-    while(max(errors) > max_error && cur_iteration < max_iterations)   
+    %initialize mean squared error
+    MSE = 1;
+    while(MSE > max_error && cur_iteration < max_iterations)   
         cur_iteration = cur_iteration + 1;
         
         % use helper function to calculate bounded voronoi regions
@@ -77,7 +77,9 @@ function lloyd(N, max_iterations, max_error, seed_from_center)
         
         % calculate euclidean distances between point positions and new centroid positions
         errors = norm_per_row([cts_x cts_y] - [pts_x pts_y]);
-        disp(['current maximum error: ', num2str(max(errors))]);
+        squared_errors = errors.^2;
+        MSE = 1/N * sum(squared_errors);
+        disp(['current MSE: ', num2str(MSE)]);
         
         % move all points to new centroid positions (unless these are nan)
         pts_x = ~isnan(cts_x) .* cts_x + isnan(cts_x) .* pts_x;
@@ -101,28 +103,13 @@ function lloyd(N, max_iterations, max_error, seed_from_center)
     end
 end
 
-% calculate coordinates of centroid of polygon from polygon vertices vX/
-% according to https://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
-function [cX, cY] = centroid(vX, vY)
-    vXp1 = vX([2:end 1]); %x coordinates with shifted indices (plus 1)
-    vYp1 = vY([2:end 1]); %y coordinates with shifted indices (plus 1)
-
-    %term used multiple times in calculation
-    multiplier = vX.*vYp1 - vXp1.*vY;
-
-    A = sum(multiplier) / 2; %signed area of the polygon
-
-    cX = sum((vX + vXp1) .* multiplier) / (6 * A);
-    cY = sum((vY + vYp1) .* multiplier) / (6 * A);
-end
-
 % http://www.mathworks.com/matlabcentral/fileexchange/34428-voronoilimit
 function [V, C] = voronoiBounded(x, y, bounds)
     % add 4 additional edges
     xA = [x; 0;  0; -2; 2];
     yA = [y; -2; 2;  0; 0];
 
-    [vi,ci] = voronoin([xA, yA]);
+    [vi, ci] = voronoin([xA, yA]);
 
     % remove the last 4 cells
     C = ci(1:end-4);
@@ -130,9 +117,18 @@ function [V, C] = voronoiBounded(x, y, bounds)
     
     for idx=1:length(C)
             % convert the contour coordinate to clockwise order
-            [X2, Y2] = poly2cw(V(C{idx}, 1), V(C{idx}, 2));
+            pts = V(C{idx},:);
+            K = convhull(pts);
+            K = K(end-1:-1:1);
+            C{idx} = C{idx}(K);
+            X2 = pts(K, 1);
+            Y2 = pts(K, 2);
             % polybool restricts polygons to domain
+            % if all points are inside the bounding box, then skip it
+            if (all((X2 <= max(bounds(:, 1))) & (X2 >= min(bounds(:, 1))) & (Y2 <= max(bounds(:, 2))) & (Y2 >= min(bounds(:, 2))))) continue; end;
+        
             [vert_x, vert_y] = polybool('intersection', bounds(:, 1), bounds(:, 2), X2, Y2);
+            
             inds = nan(1, length(vert_x));
             for vert_i = 1:length(vert_x)
                 if any(V(:, 1) == vert_x(vert_i)) && any(V(:, 2) == vert_y(vert_i))

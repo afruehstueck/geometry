@@ -86,13 +86,13 @@ function dart_throwing(radius, grid_resolution, use_grid, pause_val)
                 %visualize position of current cell in data space
                 set(current_cell_plot, 'XData', [trnsf_x trnsf_x+d trnsf_x+d trnsf_x trnsf_x], 'YData', [trnsf_y trnsf_y trnsf_y+d trnsf_y+d trnsf_y]);
                 
-                pause(pause_val)
                 
                 %pick a random dart in current cell region
                 rand_dart_x = trnsf_x + rand * d;
                 rand_dart_y = trnsf_y + rand * d;
                 
                 dart = [rand_dart_x rand_dart_y];
+                pause(pause_val)
             else
                 dart = [rand rand];
             end
@@ -123,7 +123,7 @@ function dart_throwing(radius, grid_resolution, use_grid, pause_val)
         
         %transform dart coordinates back to raster to rasterize circle
         dart_raster = ([dart(1) dart(2)] .* grid_resolution) + 1;
-        circle = sqrt((xx - dart_raster(1)).^2 + (yy - dart_raster(2)).^2) < radius_raster;
+        circle = sqrt((xx - dart_raster(1)).^2 + (yy - dart_raster(2)).^2) <= radius_raster;
 
         %add circle (ones in variable circle) to cell grid
         cell_grid = cell_grid + circle;
