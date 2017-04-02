@@ -18,10 +18,10 @@ img = imread(impath);
 laplace1  = [0 1 0; 1 -4 1; 0 1 0];
 laplace2  = [1 1 1; 1 -8 1; 1 1 1];
 
-doRGB = 1;
+doRGB = true; %filter in rgb or grayscale
 lambda = 0.25; %limit to break the filtering at 0.25 | <0.01, change visually not really noticeable
 iterations = 100;
-filtertype = string('filter2'); %'filter2' or 'circshift' implemented
+filtertype = string('filter2'); %'matrix', 'filter2' or 'circshift'
 filter = laplace1;
 
 if size(img, 3) == 3 && ~doRGB
@@ -53,9 +53,9 @@ L_eval = laplacian_matrix(30, 30);
 condition_number = condest(L_eval);
 disp(['Condition number for ', num2str(30), 'x', num2str(30), ' laplacian matrix: ', num2str(condition_number)]);
 determinant = det(L_eval);
-disp(['Determinant: ', num2str(determinant)]);
-[U, V] = eig(full(L_eval));
-plot(1:length(V), diag(V))
+%disp(['Determinant: ', num2str(determinant)]);
+[V, D] = eig(full(L_eval));
+plot(1:length(D), diag(D))
 title('900x900 laplacian matrix')
 xlabel('index')
 ylabel('eigenvalues')

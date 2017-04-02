@@ -237,8 +237,5 @@ end
 function V = applyCotanMatrices(V, M, D, lambda)
     b = D * V;
     A = (D + lambda * D * M);
-    %L = D * M;
-    %Dvec = lambda * L * V;
-    %V = V + Dvec;
     V = A \ b;
 end
