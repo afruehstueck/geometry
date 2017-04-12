@@ -73,6 +73,7 @@ function rectangle_main(rows, cols)
     xlim([min(rectangles(:, 1)) - spacing_x, max(rectangles(:, 1)) + rect_w + spacing_x]);
     ylim([min(rectangles(:, 2)) - spacing_y, max(rectangles(:, 2)) + rect_h + spacing_y]);
     
+    title('Input rectangle grid with noise');
     %draw constrained rectangles
     subplot(1, 3, 2);
     hold on;
@@ -84,6 +85,7 @@ function rectangle_main(rows, cols)
     xlim([min(constrained_rectangles_objective(:, 1)) - spacing_x, max(constrained_rectangles_objective(:, 1)) + rect_w + spacing_x]);
     ylim([min(constrained_rectangles_objective(:, 2)) - spacing_y, max(constrained_rectangles_objective(:, 2)) + rect_h + spacing_y]);
     
+    title('All constraints in objective function');
     %draw constrained rectangles
     subplot(1, 3, 3);
     hold on;
@@ -94,6 +96,8 @@ function rectangle_main(rows, cols)
     
     xlim([min(constrained_rectangles_constrained(:, 1)) - spacing_x, max(constrained_rectangles_constrained(:, 1)) + rect_w + spacing_x]);
     ylim([min(constrained_rectangles_constrained(:, 2)) - spacing_y, max(constrained_rectangles_constrained(:, 2)) + rect_h + spacing_y]);
+    
+    title('Constraints formulated as equality constraints');
 end
 
 % helper function that returns a random value between (-noise/2, noise/2)
