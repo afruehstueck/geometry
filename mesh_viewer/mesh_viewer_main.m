@@ -7,9 +7,9 @@ clc;
 clear;
 
 set(0,'DefaultFigureColormap', viridis)
-[V, F] = read_obj('../data/mesh/simple_bunny.obj'); lambdauni = 0.1; lambdacot = 0.02;  % ~500 vertices
+[V, F] = read_obj('../data/mesh/simple_bunny.obj'); lambdauni = 0.1; lambdacot = 0.005;  % ~500 vertices
 %[V, F] = read_obj('../data/mesh/sphere_distorted.obj'); % ~2500 vertices
-%[V, F] = read_obj('../data/mesh/ankylosaurus.obj'); lambdauni = 0.5; lambdacot = 0.05;   % ~5100 vertices
+%[V, F] = read_obj('../data/mesh/ankylosaurus.obj'); lambdauni = 0.02; lambdacot = 0.01;   % ~5100 vertices
 %[V, F] = read_obj('../data/mesh/pumpkin.obj');          % ~5000 vertices
 
 
@@ -27,7 +27,7 @@ set(0,'DefaultFigureColormap', viridis)
 %[V, F] = read_obj('../data/mesh/octopus.obj');          % ~4000 vertices
 %[V, F] = read_obj('../data/mesh/lamp.obj');             % ~4400 vertices // holes
 %[V, F] = read_obj('../data/mesh/cow.obj');              % ~4500 vertices
-%[V, F] = read_obj('../data/mesh/atenea.obj');           % ~4700 vertices
+%[V, F] = read_obj('../data/mesh/atenea.obj');           % ~4700 verticesF
 %[V, F] = read_obj('../data/mesh/head.obj');             % ~5100 vertices
 %[V, F] = read_obj('../data/mesh/sabtooth.obj');            % ~5800 vertices
 %!%[V, F] = read_obj('../data/mesh/mammoth.obj');         % ~7400 vertices
@@ -173,7 +173,7 @@ eVecs = eVecs(:, order);
 
 %show eigenvectors color coded on mesh
 eig_plts = zeros(0, 2);
-selected_eigenvectors = [1, 2, 3, 5, 10, length(eVecs) - 10, length(eVecs) - 5, length(eVecs )- 2, length(eVecs) - 1, length(eVecs)];
+selected_eigenvectors = [1, 2, 3, 5, 10, 20, 50, 100, length(eVecs) - 1, length(eVecs)];
 for i = 1:length(selected_eigenvectors)
     eig_plts(i) = subplot(2, length(selected_eigenvectors)/2, i);
     c = eVecs(:, selected_eigenvectors(i));

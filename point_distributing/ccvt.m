@@ -91,9 +91,7 @@ function ccvt(N_sites, M_points, max_iterations, show_voronoi_regions, plot_in_t
     %%
     % display properties
     c_star = M_points / N_sites;
-    disp([num2str(N_sites), ' sites']);
-    disp([num2str(M_points), ' points']);
-    disp(['c* = ', num2str(c_star)]);
+    fprintf('%d sites\n%d points\nc* = %d\n',N_sites, M_points, c_star);
     
     % seed random sites in plot
     sites = [rand(N_sites, 1) rand(N_sites, 1)];
@@ -151,12 +149,12 @@ function ccvt(N_sites, M_points, max_iterations, show_voronoi_regions, plot_in_t
     
     cur_iteration = 0;
     while(cur_iteration < max_iterations)  
-        disp(['************* CCVT iteration ', num2str(cur_iteration) , ' *************']);
+        fprintf('************* CCVT iteration #%d *************\n', cur_iteration);
         [A, points_in_sites, radii_sites, num_iterations] = capacity_constrained_voronoi(sites, points, A, points_in_sites, radii_sites, combinations);
 
-        if num_iterations == 0
-         disp(['Algorithm converged after ', num2str(cur_iteration), ' iterations.']);
-         break;
+        if num_iterations == 0  
+            fprintf('Algorithm converged after %d iterations.\n', cur_iteration);
+            break;
         end
 
         for s = 1:N_sites

@@ -51,9 +51,7 @@ disp(['Laplacian matrix is ', msg]);
 
 L_eval = laplacian_matrix(30, 30);
 condition_number = condest(L_eval);
-disp(['Condition number for ', num2str(30), 'x', num2str(30), ' laplacian matrix: ', num2str(condition_number)]);
-determinant = det(L_eval);
-%disp(['Determinant: ', num2str(determinant)]);
+fprintf('Condition number for %dx%d laplacian matrix: %2.3f\n', 30, 30, condition_number);
 [V, D] = eig(full(L_eval));
 plot(1:length(D), diag(D))
 title('900x900 laplacian matrix')
@@ -65,7 +63,7 @@ spy(L_eval);
 title('sparse 900x900 laplacian matrix');
 
 condition_number = condest(L);
-disp(['Condition number for ', num2str(num_px), 'x', num2str(num_px), ' laplacian matrix: ', num2str(condition_number)]);
+fprintf('Condition number for %dx%d laplacian matrix: %2.3f\n', num_px, num_px, condition_number);
 
 figure('Name', 'Laplacian Smoothing', 'NumberTitle', 'off', 'Position', [scr(3)/4 50 scr(3)/2 scr(3)/4]);
 
@@ -103,7 +101,7 @@ for t = 1:iterations
     subplot(1,2,2)
     img = img + lambda * img_filtered;
     imshow(img)
-    title(['\lambda= ', num2str(lambda), ' iteration ' , num2str(t), '/', num2str(iterations)])
+    title(sprintf('\\lambda = %1.2f iteration %d/%d', lambda, t, iterations));
     drawnow;
 end
 toc;

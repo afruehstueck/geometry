@@ -6,10 +6,10 @@ function dart_throwing(radius, grid_resolution, use_grid, pause_val)
     %radius of disks
     if nargin < 1
         radius = 0.08;
-        %use grid to enhance dart throwing
+        %use grid to enhance dart throwing (true/false)
         use_grid = true;
         %resolution of grid
-        grid_resolution = 200;
+        grid_resolution = 50;
         %pause after each throw for 'better' visualization (length of pause)
         pause_val = 0.0;
     end
@@ -54,8 +54,7 @@ function dart_throwing(radius, grid_resolution, use_grid, pause_val)
     hold on;
     current_cell_plot = plot([0 0 0 0 0], [0 0 0 0 0], 'Color', yellow, 'LineWidth', 2);
     centers_plot = scatter(centers(:, 1), centers(:, 2), 150, '.');
-    
-                
+           
     t = 0:.1:2*pi;
     num_darts_thrown = 0;
     num_valid_darts = 0;
@@ -74,19 +73,26 @@ function dart_throwing(radius, grid_resolution, use_grid, pause_val)
                 random_idx = randi(length(empty_x));
                 
                 %grid coordinates of randomly selected cell
-                x_cell = empty_x(random_idx);
-                y_cell = empty_y(random_idx);
-                disp(['picked empty cell at (', num2str(x_cell), ', ', num2str(y_cell), ')']);
-                %visualize position of current cell in grid
-                set(current_grid_plot, 'XData', [x_cell-.5 x_cell+.5 x_cell+.5 x_cell-.5 x_cell-.5], 'YData', [y_cell-.5 y_cell-.5 y_cell+.5 y_cell+.5 y_cell-.5]);
+                x_center = empty_x(random_idx); %coordinate lies at center of grid cell
+                y_center = empty_y(random_idx);
+                fprintf('picked empty cell at (%d, %d)\n', x_center, y_center);
+                
+                %rectangle around picked cell in grid
+                x_l = x_center - 0.5; x_r = x_center + 0.5;
+                y_b = y_center - 0.5; y_t = y_center + 0.5;
+                rect_grid = [x_l y_b; x_r y_b; x_r y_t; x_l y_t; x_l y_b];
+                
+                %visualize position of current cell in grid as rectangle
+                set(current_grid_plot, 'XData', rect_grid(:, 1), 'YData', rect_grid(:, 2));
                
-                %transform cell coordinates to original data space
-                trnsf_x = (x_cell - 1) / grid_resolution;
-                trnsf_y = (y_cell - 1) / grid_resolution;
+                %rectangle in original data space
+                rect_data = (rect_grid - 0.5) / grid_resolution;
                 %visualize position of current cell in data space
-                set(current_cell_plot, 'XData', [trnsf_x trnsf_x+d trnsf_x+d trnsf_x trnsf_x], 'YData', [trnsf_y trnsf_y trnsf_y+d trnsf_y+d trnsf_y]);
+                set(current_cell_plot, 'XData', rect_data(:, 1), 'YData', rect_data(:, 2));
                 
-                
+                %cell coordinates to original data space
+                trnsf_x = (x_center - 1) / grid_resolution;
+                trnsf_y = (y_center - 1) / grid_resolution;
                 %pick a random dart in current cell region
                 rand_dart_x = trnsf_x + rand * d;
                 rand_dart_y = trnsf_y + rand * d;
@@ -105,7 +111,7 @@ function dart_throwing(radius, grid_resolution, use_grid, pause_val)
                 valid_dart = true;
                 num_valid_darts = num_valid_darts + 1;
             else
-                disp(['invalid dart at [', num2str(dart(1)), ', ', num2str(dart(2)), ']']);
+                fprintf('invalid dart at [%1.2f, %1.2f]\n', dart(1), dart(2));
             end
         end
         
@@ -145,8 +151,7 @@ function dart_throwing(radius, grid_resolution, use_grid, pause_val)
     set(current_cell_plot, 'XData', [-1 -1 -1 -1 -1], 'YData', [-1 -1 -1 -1 -1]);
     set(current_grid_plot, 'XData', [-1 -1 -1 -1 -1], 'YData', [-1 -1 -1 -1 -1]);
                
-    disp([num2str(num_darts_thrown), ' darts thrown']);
-    disp([num2str(num_valid_darts), ' darts applied']);
+    fprintf('*****************************\n %d darts thrown\n %d darts chosen\n', num_darts_thrown, num_valid_darts);
 end
 
 
