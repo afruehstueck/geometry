@@ -30,12 +30,12 @@ function rectangle_main(rows, cols)
     %t: equal column spacing
     minimize_variables = 'cr';
     %align everything:
-    %minimize_variables = 'crwhst';
+    minimize_variables = 'crwhst';
     
     %% string of two (!) characters describing the alignment in y and x direction
     %y-direction: c=center / t=top / b=bottom alignment
     %x-direction: c=center / l=left / r=right alignment
-    alignment = 'tr';
+    alignment = 'cc';
     
     num_rects = rows*cols;
     
@@ -129,32 +129,8 @@ function rectangle_main(rows, cols)
         otherwise,   alignstr = [alignstr, '/center'];
     end
     fprintf('*********************************************************\n');
-    fprintf(['Aligned %dx%d rectangle grid with ', alignstr, ' alignment.\nApplied constraints: ', constraintstr, '\n'], rows, cols);
+    fprintf(['Aligned %dx%d rectangle grid with ', alignstr, ' alignment.\nApplied constraints: ', constraintstr, '\n'], rows,  cols);
     fprintf('*********************************************************\n');
 end
 
-%helper function that takes a list of rectangles in format [x y w h]
-%where (x y) = coordinates of center point, (w h) = width&height of rectangle
-%and draws the rectangles as well as their center points
-function drawRectangles(rectangles, face_colors, edge_colors, x_bounds, y_bounds)
-    hold on;
-    %calculate bottom left of rectangle to use with MATLAB rectangle drawing function
-    bottom_left_rectangles = rectangles;
-    bottom_left_rectangles(:, 1) = rectangles(:, 1) - rectangles(:, 3)/2;
-    bottom_left_rectangles(:, 2) = rectangles(:, 2) - rectangles(:, 4)/2;
-    
-    for rect = 1:size(rectangles, 1)
-        %plot rectangle
-        rectangle('Position', bottom_left_rectangles(rect, :), 'FaceColor', face_colors(rect, :), 'EdgeColor', edge_colors(rect, :));
-        %plot rectangle center
-        plot(rectangles(rect, 1), rectangles(rect, 2), '+', 'Color', edge_colors(rect, :));
-    end
-    
-    xlim(x_bounds);
-    ylim(y_bounds);
-end
 
-% helper function that returns a random value between (-noise/2, noise/2)
-function randVal = randNoise(noise)
-    randVal = (rand * noise) - (noise / 2);
-end

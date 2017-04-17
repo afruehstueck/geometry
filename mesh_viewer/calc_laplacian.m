@@ -2,33 +2,33 @@
 % @author   anna fruehstueck
 % @date     21/02/2017
 
-function [M, D, K] = calc_laplacian(type, V, F, FxV, VxV) 
+function [M, D, K] = calc_laplacian(type, V, F) 
     K = 0;
     D = 0;
     if strcmp(type, 'uniform')
-        [M, D] = calc_uniform_laplacian(V, F, FxV, VxV);
-    elseif strcmp(type, 'cotan_old')
-        [M, D, K] = calc_cotan_laplacian_per_triangle_pair(V, F, FxV, VxV);
+        [M, D] = calc_uniform_laplacian(V, F);
     elseif strcmp(type, 'cotan')
-        [M, D, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV);
+        [M, D, K] = calc_cotan_laplacian_per_face(V, F);
     end
 end
 
-function [L, W] = calc_uniform_laplacian(V, F, FxV, VxV) 
-    num_vertices = size(VxV, 1);
-    sp_L = [];
+function [M, D] = calc_uniform_laplacian(V, F) 
+    num_vertices = size(V, 1);
+    sp_M = [];
     sp_W = zeros(num_vertices, 1);
+    neighbors = findNeighbors(V, F);
+    
     for i=1:num_vertices %iterate over all vertices      
-        [adj_verts, ~] = find(VxV(:, i));
+        adj_verts = neighbors{i}';
         num_adj_verts = numel(adj_verts);
       
         sp_W(i) = 1/num_adj_verts;
-        sp_L = [sp_L; [i i -num_adj_verts]];
-        sp_L = [sp_L; [repmat(i, num_adj_verts, 1) adj_verts ones(num_adj_verts, 1)]];
+        sp_M = [sp_M; [i i -num_adj_verts;
+                       repmat(i, num_adj_verts, 1) adj_verts ones(num_adj_verts, 1)]];
     end
     
-    L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
-    W = spdiags(sp_W, 0, num_vertices, num_vertices);
+    M = sparse(sp_M(:, 1), sp_M(:, 2), sp_M(:, 3));
+    D = spdiags(sp_W, 0, num_vertices, num_vertices);
 end
 
 %try to step through incident triangles and calculate voronoi area
@@ -116,18 +116,19 @@ function [L, W] = calc_cotan_laplacian_per_triangle(V, F, FxV, VxV)
 end
 
 %trying to step through neighboring triangles two at a time 
-function [L, W, K] = calc_cotan_laplacian_per_triangle_pair(V, F, FxV, VxV) 
-    num_vertices = size(VxV, 1);
+function [M, D, K] = calc_cotan_laplacian_per_triangle_pair(V, F, FxV, VxV) 
+    num_vertices = size(V, 1);
 
-    sp_L = [];
+    sp_M = [];
     accum_areas = zeros(num_vertices, 1);
     accum_ws = zeros(num_vertices, 1);
     K = zeros(num_vertices, 1);
     
+    neighbors = findNeighbors(V, F);
+    
     for i=1:num_vertices %iterate over all vertices  
         vi = V(i, :);
-        [adj_verts, ~] = find(VxV(:, i));
-        num_adj_verts = size(adj_verts, 1);
+        adj_verts = neighbors{i}';
          
         [adj_faces, ~] = find(FxV(:, i));
         adj_triangles = F(adj_faces, :)';
@@ -161,7 +162,7 @@ function [L, W, K] = calc_cotan_laplacian_per_triangle_pair(V, F, FxV, VxV)
             cotans = dot(ki, kj, 2) ./ norm_per_row(cross(ki, kj, 2));
             w = sum(cotans); % 
             
-            sp_L = [sp_L; [i j w]];
+            sp_M = [sp_M; [i j w]];
             sum_w = sum_w + w;
                     
             ij = vj - vi;
@@ -196,24 +197,23 @@ function [L, W, K] = calc_cotan_laplacian_per_triangle_pair(V, F, FxV, VxV)
             j = k_right;
             ct = ct-1;
         end        
-        sp_L = [sp_L; [i i -sum_w]];
+        sp_M = [sp_M; [i i -sum_w]];
         accum_areas(i) = accum_area;
         accum_ws(i) = sum_w;
         %sp_W(i) = 1 / (2 * accum_area);
     end
                     
-    L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
+    M = sparse(sp_M(:, 1), sp_M(:, 2), sp_M(:, 3));
     K = (2*pi - K) ./ accum_area;
-    %sp_W = (2 * accum_areas).^(-1);
-    sp_W = (2 * accum_ws).^(-1);
-    W = spdiags(sp_W, 0, num_vertices, num_vertices);
+    sp_W = (2 * accum_areas).^(-1);
+    %sp_W = (2 * accum_ws).^(-1);
+    D = spdiags(sp_W, 0, num_vertices, num_vertices);
 end
 
-function [L, W] = calc_cotan_laplacian(V, F, FxV, VxV) 
+function [M, D] = calc_cotan_laplacian(V, F, FxV, VxV) 
     num_vertices = size(VxV, 1);
-
-    sp_L = [];%zeros(num_vertices*num_vertices, 3);
-    sp_W = zeros(num_vertices, 1);
+    sp_M = [];%zeros(num_vertices*num_vertices, 3);
+    sp_D = zeros(num_vertices, 1);
    
 %     min_adj_faces = 10000;
 %     max_adj_faces = 0;
@@ -233,7 +233,7 @@ function [L, W] = calc_cotan_laplacian(V, F, FxV, VxV)
         sum_A = 0;
       
         num_new_entries = num_adj_verts + 1;
-        cur_L = zeros(num_new_entries, 3);
+        cur_M = zeros(num_new_entries, 3);
         
         for f=1:num_adj_verts
             j = adj_verts(f);
@@ -260,14 +260,14 @@ function [L, W] = calc_cotan_laplacian(V, F, FxV, VxV)
             %add thirds of triangle areas
             sum_A = sum_A + sum(tri_areas) / 3;
             %sum_A = sum_A + sum(voronoi_areas);
-            cur_L(f, :) = [i j w];
+            cur_M(f, :) = [i j w];
         end
         
-        sum_w = sum(cur_L(:, 3));
+        sum_w = sum(cur_M(:, 3));
         %cur_L(:, 3) = cur_L(:, 3) ./ sum_w;
-        cur_L(num_new_entries, :) = [i i -sum_w];
+        cur_M(num_new_entries, :) = [i i -sum_w];
         
-        sp_L = [sp_L; cur_L];              
+        sp_M = [sp_M; cur_M];              
         
         %sum_A = sum_A / 8;
         
@@ -275,11 +275,11 @@ function [L, W] = calc_cotan_laplacian(V, F, FxV, VxV)
 
         %sp_W(i) = 1 / sum_A; %each triangle area was taken twice, which eliminates the 2*A
         
-        sp_W(i) = 1/(2 * sum_w);
+        sp_D(i) = 1/(2 * sum_w);
     end
     
-    L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
-    W = spdiags(sp_W, 0, num_vertices, num_vertices);
+    M = sparse(sp_M(:, 1), sp_M(:, 2), sp_M(:, 3));
+    D = spdiags(sp_D, 0, num_vertices, num_vertices);
 end
 
 % step through all faces stored in face list and calculate contributions of
@@ -287,8 +287,8 @@ end
 % M = matrix of vertex weights, 
 % D = diag matrix of areas, 
 % K = curvature
-function [M, D, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)  
-    num_vertices = size(VxV, 1);
+function [M, D, K] = calc_cotan_laplacian_per_face(V, F)  
+    num_vertices = size(V, 1);
     num_faces = size(F, 1);
     
     %collect contributions for sparse matrix in sp_L: 
@@ -298,7 +298,7 @@ function [M, D, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
     sp_M_col3 = zeros(num_faces * 9, 1);
     
     K = zeros(num_vertices, 1);
-    ctK = zeros(num_vertices, 1); %counts number of faces contributing to vertex (debug!)
+    %ctK = zeros(num_vertices, 1); %counts number of faces contributing to vertex (debug!)
     
     mixed_voronoi_areas = zeros(num_vertices, 1);
     voronoi_areas = zeros(num_vertices, 1);
@@ -338,7 +338,7 @@ function [M, D, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
         
         %angles in P
         %angles = acos(dot(edgesPR, edgesPQ, 2));
-        %replace dot product by faster version
+        %replaced dot product by faster version
         angles = acos(sum(conj(edgesPR) .* edgesPQ, 2));
         
         %cotans = dot(ki, kj, 2) ./ sqrt(sum(cross(edgesPR, edgesPQ, 2).^2,2));
@@ -355,7 +355,7 @@ function [M, D, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
         
         %add up angles at vertices
         K(vert_inds) = K(vert_inds) + angles;
-        ctK(vert_inds) = ctK(vert_inds) + [1; 1; 1];
+        %ctK(vert_inds) = ctK(vert_inds) + [1; 1; 1];
         
         %cotangent values for angles at vertices P, Q, R
         cotangents = cot(angles);
@@ -370,10 +370,10 @@ function [M, D, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
         %contributions
         sp_M_col1(f*9-8:f*9, :) = [vert_inds(Ps); vert_inds(Ps); vert_inds(Ps)];
         sp_M_col2(f*9-8:f*9, :) = [vert_inds(Ps); vert_inds(Qs); vert_inds(Rs)];
-        sp_M_col3(f*9-8:f*9, :) = [(cotangents(Rs) + cotangents(Qs)); -cotangents(Rs); -cotangents(Qs)];
+        sp_M_col3(f*9-8:f*9, :) = [-(cotangents(Rs) + cotangents(Qs)); cotangents(Rs); cotangents(Qs)];
         
         %clamp cotangents to zero for area computation
-        cotangents = max(cotangents, [0; 0; 0]);
+        %cotangents = max(cotangents, [0; 0; 0]);
         
         voronoi = (l_edgesPQ.^2 .* cotangents(Rs) + l_edgesPR.^2 .* cotangents(Qs)) / 8;
 
@@ -391,7 +391,7 @@ function [M, D, K] = calc_cotan_laplacian_per_face(V, F, FxV, VxV)
     areas = mixed_voronoi_areas;
     
     %clamp small areas?????????
-    areas = max(areas, 0.2 * ones(num_vertices, 1));
+    areas = max(areas, ones(num_vertices, 1));
    
     %disp(['min/max total angle: ', num2str(min(K)), ', ', num2str(max(K))]); 
     K = (2*pi - K) ./ areas;
@@ -519,4 +519,22 @@ end
 
 function N = norm_per_row(M) 
     N = sqrt(sum(M.^2, 2));
+end
+
+
+function [neighbors] = findNeighbors(V, F)
+    neighbors = cell(1, size(V, 1));
+
+    for i=1:length(F)
+        neighbors{F(i,1)} = [neighbors{F(i,1)} [F(i,2) F(i,3)]];
+        neighbors{F(i,2)} = [neighbors{F(i,2)} [F(i,3) F(i,1)]];
+        neighbors{F(i,3)} = [neighbors{F(i,3)} [F(i,1) F(i,2)]];
+    end
+
+    for i=1:size(V,1)
+        neighbors{i} = unique(neighbors{i});
+        if isempty(neighbors{i})
+            neighbors{i}=[];
+        end
+    end
 end
