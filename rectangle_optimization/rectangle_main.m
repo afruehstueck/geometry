@@ -2,11 +2,10 @@
 % @author   afruehstueck
 % @date     03/04/2017
 
-function rectangle_main(rows, cols)
-
-    close all
-    clc;
-    clear;
+function rectangle_main(rows, cols,rect_w, rect_h, spacing_x, spacing_y, noise_rw, noise_rh, noise_sx, noise_sy, minimize_variables, alignment)
+%     close all
+%     clc;
+%     clear;
     %% rectangle grid settings
     if nargin < 1
         %number of grid rows and columns
@@ -18,24 +17,24 @@ function rectangle_main(rows, cols)
         %range of noise added to width and height [from -noise/2 to noise/2]        
         noise_rw = 30;  noise_rh = 30;       
         %range of noise added to spacing [from -noise/2 to noise/2]        
-        noise_sx = 30;  noise_sy = 50;     
+        noise_sx = 30;  noise_sy = 50;
+    
+        %% string of characters describing the rectangle constraints
+        %c: column alignment
+        %r: row alignment
+        %w: width alignment 
+        %h: height alignment
+        %s: equal row spacing
+        %t: equal column spacing
+        minimize_variables = 'cr';
+        %align everything:
+        %minimize_variables = 'crwhst';
+
+        %% string of two (!) characters describing the alignment in y and x direction
+        %y-direction: c = center / t = top  / b = bottom alignment
+        %x-direction: c = center / l = left / r = right alignment
+        alignment = 'bl';     
     end
-    
-    %% string of characters describing the rectangle constraints
-    %c: column alignment
-    %r: row alignment
-    %w: width alignment 
-    %h: height alignment
-    %s: equal row spacing
-    %t: equal column spacing
-    minimize_variables = 'cr';
-    %align everything:
-    minimize_variables = 'crwhst';
-    
-    %% string of two (!) characters describing the alignment in y and x direction
-    %y-direction: c=center / t=top / b=bottom alignment
-    %x-direction: c=center / l=left / r=right alignment
-    alignment = 'cc';
     
     num_rects = rows*cols;
     
