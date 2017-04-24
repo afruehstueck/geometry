@@ -521,7 +521,6 @@ function N = norm_per_row(M)
     N = sqrt(sum(M.^2, 2));
 end
 
-
 function [neighbors] = findNeighbors(V, F)
     neighbors = cell(1, size(V, 1));
 

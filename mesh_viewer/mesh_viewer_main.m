@@ -6,32 +6,32 @@ close all;
 clc;
 clear;
 
-set(0,'DefaultFigureColormap', viridis)
-[V, F] = read_obj('../data/mesh/simple_bunny.obj'); lambdauni = 0.1; lambdacot = 0.05;  % ~500 vertices
-%[V, F] = read_obj('../data/mesh/sphere_distorted.obj'); % ~2500 vertices
+set(0, 'DefaultFigureColormap', viridis);
+[V, F] = read_obj('../data/mesh/simple_bunny.obj');      lambdauni = 0.1; lambdacot = 0.05; %  ~500 vertices
+%[V, F] = read_obj('../data/mesh/teddy.obj');             lambdauni = 0.1; lambdacot = 0.05; % ~1500 vertices
+
+%[V, F] = read_obj('../data/mesh/sphere_distorted.obj');  lambdauni = 0.3; lambdacot = 0.07; % ~2500 vertices
+%[V, F] = read_obj('../data/mesh/sphere_bumps.obj');      lambdauni = 0.3; lambdacot = 0.07; % ~2000 vertices 
+
 %[V, F] = read_obj('../data/mesh/ankylosaurus.obj'); lambdauni = 0.02; lambdacot = 0.01;   % ~5100 vertices
 %[V, F] = read_obj('../data/mesh/pumpkin.obj');          % ~5000 vertices
-
-
 %[V, F] = read_obj('../data/mesh/shuttle.obj');          % ~300 vertices
-%[V, F] = read_obj('../data/mesh/simple_bunny.obj');     % ~500 vertices
-%[V, F] = read_obj('../data/mesh/duck.obj');            % ~900 vertices
+%[V, F] = read_obj('../data/mesh/duck.obj');             % ~900 vertices
 %[V, F] = read_obj('../data/mesh/LEGO_man.obj');    
 %[V, F] = read_obj('../data/mesh/iris.obj');             % ~1100 vertices
-%[V, F] = read_obj('../data/mesh/teddy.obj');            % ~1500 vertices
 %[V, F] = read_obj('../data/mesh/gecko.obj');            % ~2200 vertices
 %[V, F] = read_obj('../data/mesh/sphere.obj');           % ~2500 vertices
 %[V, F] = read_obj('../data/mesh/sphere_distorted.obj'); % ~2500 vertices // holes
-%[V, F] = read_obj('../data/mesh/sphere_bumps.obj'); % ~2500 vertices // holes
-%%[V, F] = read_obj('../data/mesh/camel.obj');            % ~3700 vertices
-%[V, F] = read_obj('../data/mesh/bear_pnd.obj');            % ~3900 vertices
+%[V, F] = read_obj('../data/mesh/sphere_bumps.obj');     % ~2500 vertices // holes
+%[V, F] = read_obj('../data/mesh/camel.obj');           % ~3700 vertices
+%[V, F] = read_obj('../data/mesh/bear_pnd.obj');         % ~3900 vertices
 %[V, F] = read_obj('../data/mesh/octopus.obj');          % ~4000 vertices
 %[V, F] = read_obj('../data/mesh/lamp.obj');             % ~4400 vertices // holes
 %[V, F] = read_obj('../data/mesh/cow.obj');              % ~4500 vertices
 %[V, F] = read_obj('../data/mesh/atenea.obj');           % ~4700 vertices
 %[V, F] = read_obj('../data/mesh/head.obj');             % ~5100 vertices
-%[V, F] = read_obj('../data/mesh/sabtooth.obj');            % ~5800 vertices
-%[V, F] = read_obj('../data/mesh/mammoth.obj');         % ~7400 vertices
+%[V, F] = read_obj('../data/mesh/sabtooth.obj');         % ~5800 vertices
+%[V, F] = read_obj('../data/mesh/mammoth.obj');          % ~7400 vertices
 %[V, F] = read_obj('../data/mesh/suzanne.obj');          % ~7800 vertices
 
 % scr = get(0, 'ScreenSize');
@@ -155,11 +155,12 @@ for i = 1:numIter
         trisurf(F, Vuni(:, 1), Vuni(:, 2), Vuni(:, 3));  
         hold off;
         %recalculate laplacian1
+        [Muni, Duni, ~] = calc_laplacian(type1, Vuni, F);
+        [Vuni, ~, ~] = applyMatrices(Vuni, Muni, Duni, -lambdauni);
+        
         [Muni, Duni, Kuni] = calc_laplacian(type1, Vuni, F);
         [Vuni, LapVuni, Luni] = applyMatrices(Vuni, Muni, Duni, lambdauni);
         
-        [Muni, Duni, Kuni] = calc_laplacian(type1, Vuni, F);
-        [Vuni, LapVuni, Luni] = applyInverseMatrices(Vuni, Muni, Duni, lambdauni);
     end
     
     if update2
@@ -177,11 +178,12 @@ for i = 1:numIter
         hold off;
 
         %recalculate laplacian2
+        [Mcot, Dcot, ~] = calc_laplacian(type2, Vcot, F);
+        Vcot = applyMatrices(Vcot, Mcot, Dcot, -lambdacot);
+        
         [Mcot, Dcot, Kcot] = calc_laplacian(type2, Vcot, F);
         Vcot = applyMatrices(Vcot, Mcot, Dcot, lambdacot);
         
-        [Mcot, Dcot, Kcot] = calc_laplacian(type2, Vcot, F);
-        Vcot = applyInverseMatrices(Vcot, Mcot, Dcot, lambdacot);
         
         %Hcot = sqrt(sum(LapVcot.^2, 2)) / 2;
     end
@@ -257,14 +259,8 @@ trisurf(F, Vrec(:, 1), Vrec(:, 2), Vrec(:, 3));
 %returns new vertex positions and discrete average of laplace-beltrami
 function [V, Dvec, L] = applyMatrices(V, M, D, lambda)
     L = D * M;
-    Dvec = (lambda * L) * V;
+    Dvec = lambda * L * V;
     V = V + Dvec;
-end
-
-function [V, Dvec, L] = applyInverseMatrices(V, M, D, lambda)
-    L = D * M;
-    Dvec = (lambda * L) * V;
-    V = V - Dvec;
 end
 
 %helper function to apply Laplacian and mass matrix to data

@@ -1,8 +1,27 @@
 % @file     rectangle_main.m
 % @author   afruehstueck
 % @date     03/04/2017
+%
+% rectangle_main generates a set grid of rows x cols rectangles using the 
+% specified width and height parameters rect_w and rect_h, rectangles are 
+% arranged in a grid with inbetween spacing spacing_x and spacing_y. 
+% Adding a range of noise to these parameters using the respective arguments 
+% noise_rw, noise_rh, noise_sx, noise_sy.
+%
+% rectangles are stored in a matrix where each row describes a rectangle 
+% specified by center_x, center_y, width and height
+%
+% function parameter minimize_variables describes the parameters of the grid
+% that should be constrained in the optimization (details in code)
+%
+% function parameter alignment describes the desired alignment of the rows
+% and columns (details in code)
+%
+% objective function matrices and constraint matrices are generated to be
+% used with MATLAB solvers quadprog and lsqlin.
+% optimization is calculated and results are displayed in plot
 
-function rectangle_main(rows, cols,rect_w, rect_h, spacing_x, spacing_y, noise_rw, noise_rh, noise_sx, noise_sy, minimize_variables, alignment)
+function rectangle_main(rows, cols, rect_w, rect_h, spacing_x, spacing_y, noise_rw, noise_rh, noise_sx, noise_sy, minimize_variables, alignment)
 %     close all
 %     clc;
 %     clear;
@@ -80,22 +99,22 @@ function rectangle_main(rows, cols,rect_w, rect_h, spacing_x, spacing_y, noise_r
     y_bounds = [-rect_h / 2 - outer_spacing, (rows - 1) * (rect_h + spacing_y) + rect_h / 2 + outer_spacing];
     
     %draw original rectangles
-    subplot(1, 4, 1);
+    subplot(1, 3, 1);
     drawRectangles(noisy_rectangles, face_colors, edge_colors, x_bounds, y_bounds);
     title('rectangle grid with noise');
     
     %draw constrained rectangles
-    subplot(1, 4, 2);
-    drawRectangles(constrained_rectangles_objective, face_colors, edge_colors, x_bounds, y_bounds);
-    title('constraints formulated as part of objective function');
+%     subplot(1, 4, 2);
+%     drawRectangles(constrained_rectangles_objective, face_colors, edge_colors, x_bounds, y_bounds);
+%     title('constraints formulated as part of objective function');
     
     %draw constrained rectangles
-    subplot(1, 4, 3);
+    subplot(1, 3, 2);
     drawRectangles(constrained_rectangles_constrained, face_colors, edge_colors, x_bounds, y_bounds);
     title('quadprog with equality constraints');
     
     %draw constrained rectangles
-    subplot(1, 4, 4);
+    subplot(1, 3, 3);
     drawRectangles(constrained_rectangles_lsq, face_colors, edge_colors, x_bounds, y_bounds);
     title('lsqlin with equality constraints');
     
