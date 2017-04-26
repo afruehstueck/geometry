@@ -14,7 +14,7 @@ function dart_throwing(radius, grid_resolution, use_grid, pause_val)
         %use grid to enhance dart throwing (true/false)
         use_grid = true;
         %resolution of grid
-        grid_resolution = 50;
+        grid_resolution = 80;
         %pause after each throw for 'better' visualization (length of pause)
         pause_val = 0.0;
     end

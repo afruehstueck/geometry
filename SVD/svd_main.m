@@ -10,10 +10,10 @@ close all
 clc;
 clear;
 
-%impath = '../data/img/bunny.jpg';
+impath = '../data/img/bunny.jpg';
 %impath = '../data/img/stripes.png';
 %impath = '../data/img/zebra.jpg';
-impath = '../data/img/flower.jpg';
+%impath = '../data/img/flower.jpg';
 %impath = '../data/img/carpet.jpg';
 %impath = '../data/img/stripes_diagonal.jpg';
 %impath = '../data/img/loops.jpg';

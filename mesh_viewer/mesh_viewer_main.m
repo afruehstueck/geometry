@@ -40,7 +40,7 @@ path = '../data/mesh/simple_bunny.obj'; lambdauni = 0.1; lambdacot = 0.05; %  ~5
 % path = '../data/mesh/atenea.obj';           % ~4700 vertices
 % path = '../data/mesh/head.obj';             % ~5100 vertices
 % path = '../data/mesh/sabtooth.obj';         % ~5800 vertices
- path = '../data/mesh/mammoth.obj';          % ~7400 vertices
+% path = '../data/mesh/mammoth.obj';          % ~7400 vertices
 % path = '../data/mesh/suzanne.obj';          % ~7800 vertices
 
 [V, F] = read_obj(path);      
@@ -120,7 +120,7 @@ if showoriginal
     %colorbar
     shading interp
     set(surface', 'edgecolor', 'k');
-    quiver3(V(:, 1), V(:, 2), V(:, 3), LapVcot(:, 1), LapVcot(:, 2), LapVcot(:, 3), 2);
+    quiver3(V(:, 1), V(:, 2), V(:, 3), LapVcot(:, 1), LapVcot(:, 2), LapVcot(:, 3));
     camproj perspective
 end
 

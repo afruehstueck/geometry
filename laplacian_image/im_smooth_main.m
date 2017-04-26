@@ -70,8 +70,9 @@ figure;
 spy(L_eval);
 title('sparse 900x900 laplacian matrix');
 
-condition_number = condest(L);
-fprintf('Condition number for %dx%d laplacian matrix: %2.3f\n', num_px, num_px, condition_number);
+%evaluate condition number for image-size laplacian matrix
+% condition_number = condest(L);
+% fprintf('Condition number for %dx%d laplacian matrix: %2.3f\n', num_px, num_px, condition_number);
 
 figure('Name', 'Laplacian Smoothing', 'NumberTitle', 'off', 'Position', [scr(3)/4 50 scr(3)/2 scr(3)/4]);
 

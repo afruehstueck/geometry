@@ -6,12 +6,13 @@
 % use image or custom function as distribution function for the points
 % show iterative updates
 % note: first iteration can be rather slow - following iterations are increasingly fast
+% check progress in console!
 
 function ccvt(N_sites, M_points, max_iterations, show_voronoi_regions, plot_in_two_figures, impath)    
     %% settings
     % number of seed points
     if nargin < 1
-        N_sites = 4096;
+        N_sites = 2048; %4096 is nicer, but slower :)
         M_points = 64 * N_sites;
         
         % additional constraint to avoid iterating forever
@@ -25,7 +26,7 @@ function ccvt(N_sites, M_points, max_iterations, show_voronoi_regions, plot_in_t
         use_exp_distribution = false;
         use_image = true;
         impath = '../data/img/face.jpg';
-        impath = '../data/img/tiger.jpg';
+        %impath = '../data/img/tiger.jpg';
         %impath = '../data/img/sloth_drawing.jpg';
     else
         use_simple_distribution = false;

@@ -45,7 +45,7 @@ function rectangle_main(rows, cols, rect_w, rect_h, spacing_x, spacing_y, noise_
         %h: height alignment
         %s: equal row spacing
         %t: equal column spacing
-        minimize_variables = 'cr';
+        minimize_variables = 'crws';
         %align everything:
         %minimize_variables = 'crwhst';
 

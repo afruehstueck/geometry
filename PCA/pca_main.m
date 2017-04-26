@@ -21,7 +21,7 @@ pcpath = '../data/pointcloud/face.ply';
 %pcpath = '../data/pointcloud/woman.ply';
 %pcpath = '../data/pointcloud/bunny.ply';
 %pcpath = '../data/pointcloud/lobster.ply';
-pcpath = '../data/pointcloud/pepper.ply';
+%pcpath = '../data/pointcloud/pepper.ply';
 
 dims = 3; %set to 2 or 3
 randomRotation = true; %apply random rotation to data for more interesting results
