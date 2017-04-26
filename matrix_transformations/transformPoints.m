@@ -1,8 +1,9 @@
 % @file     transformPoints.m
 % @author   afruehstueck
 % @date     30/01/2017
+%
+% applies input transformation matrix to points, updates viewer content and returns transformed points
 
-%applies matrix to points, updates viewer and returns transformed points
 function transformed = transformPoints(viewer, points, matrix)
 
 %clear window content
@@ -34,7 +35,7 @@ else %3D matrix transformations
         end
     end
     %plot result of transformation in viewer
-    surf(transformed(:, :, 1),transformed(:, :, 2),transformed(:, :, 3));
+    surf(transformed(:, :, 1), transformed(:, :, 2), transformed(:, :, 3));
 end
 
 %animate

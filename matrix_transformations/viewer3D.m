@@ -1,8 +1,9 @@
 % @file     viewer3D.m
 % @author   afruehstueck
 % @date     30/01/2017
-
+%
 %create a 3D view and show a 3D object in it
+
 function [viewer, points] = viewer3D(dimX, dimY, dimZ)
     if (~exist('dimX', 'var'))
         dimX = [-4, 4];

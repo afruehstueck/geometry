@@ -1,8 +1,9 @@
 % @file     regression_inputFn.m
 % @author   afruehstueck
 % @date     06/02/2017
+%
+% takes input values x and y and does least squares fitting on the data
 
-%takes input values x and y and does least squares fitting on the data
 function [] = regression_inputFn(x, y, descr)
 %     if ~exist('dimX', 'var')
 %         dimX = [-5, 5];
@@ -46,11 +47,6 @@ function [] = regression_inputFn(x, y, descr)
         cla(fig);
         plot(x, y, 'o');
         plot(x, polyval(coeff, x) );
-        
-        
-%         coeff_reg = ( A' * A + lambda * eye ( size(A, 2) ) ) \ ( A' * b )
-%         plot(x, polyval(coeff_reg, x), 'b');
-%         drawnow;
 
         ln_lambda = -2.3;
         lambda = exp(ln_lambda);

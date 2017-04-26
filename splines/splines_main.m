@@ -1,6 +1,13 @@
-% @file     main.m
+% @file     splines_main.m
 % @author   afruehstueck
 % @date     07/02/2017
+%
+% generate several different examples of natural splines in 2D and 3D
+% first viewer will request 2D user input and generate splines connecting
+% these data points. Click right button to stop input or close figure
+% window.
+%
+% Several other 2D and 3D examples are generated in various figures.
 
 function [] = splines_main() 
     clear;
@@ -43,6 +50,8 @@ function [] = splines_main()
     plot3(x, y, z, 'o');
     naturalSplines(x, y, z, 1);    
     
+    rotate3d on;
+    
 %%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %   FIVE dataset (94 data points)             %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,6 +72,8 @@ function [] = splines_main()
     plot3(x, y, z, 'o');
     naturalSplines(x, y, z, 1);    
     
+    rotate3d on;
+    
     %%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %   LOXODROME   (generated)                   %
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -78,6 +89,8 @@ function [] = splines_main()
     axis auto;
     plot3(x, y, z, 'o');
     naturalSplines(x, y, z, 0); 
+    
+    rotate3d on;
 
 %%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %   TWO SPIRALS   (generated)                 %
@@ -97,6 +110,8 @@ function [] = splines_main()
     axis auto;
     plot3(x, y, z, 'o');
     naturalSplines(x, y, z, 0); 
+    
+    rotate3d on;
     
 %%  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %   SPIRAL (generated)                        %

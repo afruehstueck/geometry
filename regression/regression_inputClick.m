@@ -1,10 +1,11 @@
 % @file     regression_inputClick.m
 % @author   afruehstueck
 % @date     02/02/2017
-
+%
 %create a plot and ask user for input via mouse click
 %fit a polynomial of degree k-1 through the k points selected by the user
 %also, fit polynomials with regularization
+
 function [] = regression_inputClick(allow_input, show_title)    
     if (~exist('show_title', 'var'))
         show_title = 0;

@@ -1,6 +1,11 @@
 % @file     svd_main.m
 % @author   anna fruehstueck
 % @date     20/02/2017
+%
+% load image from file, decompose using SVD and reconstructs image using
+% varying numbers of singular values. evaluate the error of low-rank
+% approximation
+
 close all
 clc;
 clear;

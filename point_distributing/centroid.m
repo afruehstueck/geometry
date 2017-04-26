@@ -1,9 +1,10 @@
 % @file     centroid.m
 % @author   afruehstueck
 % @date     24/03/2017
+% 
+% calculate coordinates of centroid of polygon from polygon vertices vX/vY
+% following https://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
 
-% calculate coordinates of centroid of polygon from polygon vertices vX/
-% according to https://en.wikipedia.org/wiki/Centroid#Centroid_of_polygon
 function [cX, cY] = centroid(vX, vY)
     vXp1 = vX([2:end 1]); %x coordinates with shifted indices (plus 1)
     vYp1 = vY([2:end 1]); %y coordinates with shifted indices (plus 1)

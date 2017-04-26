@@ -1,6 +1,14 @@
 % @file     pca_main.m
 % @author   afruehstueck
 % @date     15/03/2017
+%
+% load some 2D and 3D pointcloud data from file and/or autogenerate random
+% sample data
+% apply some rotations and translations to the data to make it more
+% interesting
+% do principal component analysis on the data and visualize the results
+% generate an oriented bounding box of the data in 2D and 3D on the basis 
+% of the principal components of the data and visualize the bounding box
 
 close all
 clc;

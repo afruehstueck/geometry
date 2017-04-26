@@ -1,6 +1,11 @@
 % @file     dart_throwing.m
 % @author   afruehstueck
 % @date     24/03/2017
+%
+% perform dart throwing on a grid specified by resolution, dart size
+% specified by radius and show animated updates as darts are thrown
+% use parameter pause_val to pause between throws for slower animation
+
 function dart_throwing(radius, grid_resolution, use_grid, pause_val)  
     %% settings
     %radius of disks
@@ -152,20 +157,4 @@ function dart_throwing(radius, grid_resolution, use_grid, pause_val)
     set(current_grid_plot, 'XData', [-1 -1 -1 -1 -1], 'YData', [-1 -1 -1 -1 -1]);
                
     fprintf('*****************************\n %d darts thrown\n %d darts chosen\n', num_darts_thrown, num_valid_darts);
-end
-
-
-% helper function that calculates row-wise norm
-function N = norm_per_row(M) 
-    N = sqrt(sum(M.^2, 2));
-end
-
-% helper function that clamps values to range
-function C = clamp(M, minval, maxval) 
-    if nargin == 1
-        minval = 0;
-        maxval = 1;
-    end
-    one_vec = ones(size(M));
-    C = min(max(M, minval * one_vec), maxval * one_vec);
 end

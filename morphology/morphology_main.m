@@ -1,6 +1,9 @@
 % @file     morphology_main.m
 % @author   afruehstueck
 % @date     14/03/2017
+%
+% load image from file
+% apply various morphological operations to image
 
 close all
 clc;
@@ -20,6 +23,7 @@ shapepath_8 = '../data/img/shape_8.jpg';
 img = imread(impath);
 %convert image to black and white
 BWimg = im2bw(img, 0.5);
+
 [img_y, img_x] = size(img(:, :, 1));
 se = [];
 se_idx = 1;
@@ -55,7 +59,7 @@ set(gcf,'Color', [0.1  0.1  0.1])
 
 %show original image to the left
 subplot(n_se, w, 1)
-imshow(img)
+imshow(BWimg)
 title('ORIGINAL', 'Color', 'w')
 for i=1:n_se    
     cur_se = se(:, :, i);
@@ -100,23 +104,3 @@ subplot(n_se, w, 6)
 title('CLOSE', 'Color', 'w')
 
 subplotsqueeze(morph_fig, 1.35);
-
-function subplotsqueeze(hFig, nF)
-% Stretch width and height of all subplots in a figure window
-% subplotsqueeze(H, F) will stretch subplots in figure with handle H by the
-% proportional factor F.
-%
-% Examples:
-% subplotsqueeze(gcf, 1.2) will expand all axes by 20%
-% subplotsqueeze(gcf, 0.8) will contract all axes by 20%
-%
-% Expansion and contraction is equal in both directions and axes remain
-% centered on their current locations.
-%
-hAx = findobj(hFig, 'type', 'axes');
-for h = 1:length(hAx)
-    vCurrPos = get(hAx(h), 'position'); % current position
-    set(hAx(h), 'position', (vCurrPos.*[1 1 nF nF])-[vCurrPos(3)*(nF-1)/2 vCurrPos(4)*(nF-1)/2 0 0]);
-end
-return
-end

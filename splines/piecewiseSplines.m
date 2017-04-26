@@ -1,9 +1,10 @@
 % @file     piecewiseSplines.m
 % @author   afruehstueck
 % @date     07/02/2017
+%
+% piecewise splines for points drawn in 2D
+% not a parametric function
 
-%piecewise splines for points drawn in 2D
-%not a parametric function
 function [viewer, points] = piecewiseSplines()
     clear;
     clc;

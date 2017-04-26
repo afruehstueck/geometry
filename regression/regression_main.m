@@ -1,11 +1,18 @@
 % @file     regression_main.m
 % @author   afruehstueck
 % @date     11/02/2017
+%
+% execute several instances of regression with different input functions
+% note: there is user input requested in most of these functions
+% abort input request by pressing 'Enter'
 
 clear;
 clc;
+% input data points by mouse click in figure window
 regression_inputClick(1, 0);
 
+% specify degree of polynomial by input in console window (requests more
+% input until input is aborted)
 x = linspace(-2, 2, 50);
 [y, y_noise] = noisyFunction(x, 0.4, @cos);
 descr = 'f(x) = cos(x)';

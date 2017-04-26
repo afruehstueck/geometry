@@ -1,5 +1,6 @@
 function [A] = combinator(N,K,s1,s2)
 %COMBINATOR  Perform basic permutation and combination samplings.
+% https://www.mathworks.com/matlabcentral/fileexchange/24325-combinator-combinations-and-permutations
 % COMBINATOR will return one of 4 different samplings on the set 1:N,  
 % taken K at a time.  These samplings are given as follows:
 %    

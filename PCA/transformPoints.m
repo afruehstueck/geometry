@@ -1,8 +1,9 @@
 % @file     transformPoints.m
 % @author   afruehstueck
 % @date     30/01/2017
+%
+%applies transformation matrix to points and returns transformed points
 
-%applies matrix to points, updates viewer and returns transformed points
 function transformed = transformPoints(points, matrix)
     if size(points, 1) == 2 %2D matrix transformations
         if length(matrix) == 2

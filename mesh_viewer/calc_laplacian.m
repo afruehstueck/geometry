@@ -1,6 +1,13 @@
 % @file     calc_laplacian.m
 % @author   anna fruehstueck
 % @date     21/02/2017
+%
+% calculate the laplacian matrix for data with vertices V and faces F
+% 'type' specifies whether the uniform or cotangent laplace-beltrami is
+% calculated
+% there are several approaches for calculating the cotangent laplacian in
+% the different functions I tried out below.
+% the most recent working function is calc_cotan_laplacian_per_face
 
 function [M, D, K] = calc_laplacian(type, V, F) 
     K = 0;
@@ -463,51 +470,8 @@ function [L, W] = calc_cotan_laplacian4(V, F, FxV, VxV)
     L = sparse(sp_L(:, 1), sp_L(:, 2), sp_L(:, 3));
     W = spdiags(sp_W, 0, num_vertices, num_vertices);
 end
-       
-%         for f=1:num_adj_triangles
-%             cur_triangle = adj_triangles(f, :);
-%             cur_triangle = cur_triangle(cur_triangle~=i); %remove center point
-%             verts = V(cur_triangle, :);
-%             A = vi; %current vertex
-%             B = verts(1, :);
-%             C = verts(2, :);
-%             AB = B - A;
-%             AC = C - A;
-%             BC = C - B;
-%             l_AB = norm(AB);
-%             l_AC = norm(AC);
-%             l_BC = norm(BC);
-%             %triangle area
-%             tri_area = norm(cross(AB, AC)) / 2;
-%             
-%             %unit vectors
-%             uAB = AB / l_AB;
-%             uAC = AC / l_AC;
-%             uBC = BC / l_BC; 
-%             
-%             %angles in A, B, C
-%             angle_A = acos(dot(uAB, uAC));
-%             angle_B = acos(dot(-uAB, uBC));
-%             angle_C = acos(dot(-uAC, -uBC));
-%             
-%             %voronoi area
-%             if is_obtuse([A; B; C])
-%                 if angle_A > pi/2
-%                     %disp('a obt')
-%                     voronoi_area = tri_area / 2;
-%                 else
-%                     %disp('obt wo a')
-%                     voronoi_area = tri_area / 4;
-%                 end
-%             else
-%                 voronoi_area = (1/8)*( l_AB^2 / tan(angle_C) + l_AC^2 / tan(angle_B) ); 
-%             end
-%             
-%             accum_voronoi = accum_voronoi + voronoi_area;
-%             accum_angle = accum_angle + angle_A;
-%             accum_area = accum_area + (tri_area / 3);
-%         end
 
+% evaluate obtusity of triangle
 %see http://mathworld.wolfram.com/ObtuseTriangle.html
 function result = is_obtuse(vertices)
     perm = [1 2 3; 2 3 1; 3 1 2]; %all combinations of indices
@@ -517,23 +481,9 @@ function result = is_obtuse(vertices)
     result = any(compare); %is any of the inequalities true
 end
 
+% calculate row-wise norm in matrix (function not available in MATLAB)
 function N = norm_per_row(M) 
     N = sqrt(sum(M.^2, 2));
 end
 
-function [neighbors] = findNeighbors(V, F)
-    neighbors = cell(1, size(V, 1));
 
-    for i=1:length(F)
-        neighbors{F(i,1)} = [neighbors{F(i,1)} [F(i,2) F(i,3)]];
-        neighbors{F(i,2)} = [neighbors{F(i,2)} [F(i,3) F(i,1)]];
-        neighbors{F(i,3)} = [neighbors{F(i,3)} [F(i,1) F(i,2)]];
-    end
-
-    for i=1:size(V,1)
-        neighbors{i} = unique(neighbors{i});
-        if isempty(neighbors{i})
-            neighbors{i}=[];
-        end
-    end
-end

@@ -1,8 +1,10 @@
 % @file     naturalSplines.m
 % @author   afruehstueck
 % @date     07/02/2017
+%
+% evaluate arguments and pick corresponding spline function
+% evaluates each dimension of the splines indepently in evaluate1DSpline
 
-%evaluate arguments and pick corresponding spline function
 function [viewer, points] = naturalSplines(x, y, z, closed)
     if ~exist('closed', 'var')
         closed = 0;

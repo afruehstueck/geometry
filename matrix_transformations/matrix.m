@@ -1,8 +1,11 @@
 % @file     matrix.m
 % @author   afruehstueck
 % @date     30/01/2017
+%
+% create transformation matrices on the basis of various input arguments
+% matrix dimensions and properties are passed as input parameters
+% view possible parameters for various matrices above function specs below
 
-%create special matrices on the basis of various input arguments
 function m = matrix(varargin)
     %dimension specifies the size of the matrix
     dimension = varargin{1};

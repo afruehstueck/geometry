@@ -1,10 +1,11 @@
 % @file     calc_normal.m
 % @author   anna fruehstueck
 % @date     21/02/2017
+%
+% calculate the normal vectors at every vertex V
 
-function [N] = calc_normal(V, F, FxV)
-    
-% % Face normals
+function [N] = calc_normal(V, F, FxV) 
+% % calculate Face normals
 %     num_faces = size(F, 1);
 %     N = zeros(num_faces, 3);
 %     for k=1:num_faces-1 %iterate over all faces

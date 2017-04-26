@@ -1,55 +1,49 @@
 % @file     mesh_viewer_main.m
 % @author   anna fruehstueck
 % @date     10/02/2017
+%
+% load 3D mesh data from file, show in figure
+% calculate laplacian matrix of mesh and iteratively apply to do mesh
+% smoothing
+% evaluate and analyze laplacian 
 
 close all;
 clc;
 clear;
 
+% set to determine whether to execute all code to do analysis of the laplacian
+skipEigenAnalysis = true;
+
 set(0, 'DefaultFigureColormap', viridis);
-[V, F] = read_obj('../data/mesh/simple_bunny.obj');      lambdauni = 0.1; lambdacot = 0.05; %  ~500 vertices
-%[V, F] = read_obj('../data/mesh/teddy.obj');             lambdauni = 0.1; lambdacot = 0.05; % ~1500 vertices
+%good meshes
+path = '../data/mesh/simple_bunny.obj'; lambdauni = 0.1; lambdacot = 0.05; %  ~500 vertices
+% path = '../data/mesh/teddy.obj';             lambdauni = 0.1; lambdacot = 0.05; % ~1500 vertices
+% path = '../data/mesh/sphere_distorted.obj';  lambdauni = 0.3; lambdacot = 0.07; % ~2500 vertices
+% path = '../data/mesh/sphere_bumps.obj';      lambdauni = 0.3; lambdacot = 0.07; % ~2000 vertices 
+% path = '../data/mesh/ankylosaurus.obj';      lambdauni = 0.02; lambdacot = 0.01;% ~5100 vertices
 
-%[V, F] = read_obj('../data/mesh/sphere_distorted.obj');  lambdauni = 0.3; lambdacot = 0.07; % ~2500 vertices
-%[V, F] = read_obj('../data/mesh/sphere_bumps.obj');      lambdauni = 0.3; lambdacot = 0.07; % ~2000 vertices 
+% various not-so-good meshes (some have holes, some are too big, ...)
+% path = '../data/mesh/pumpkin.obj';          % ~5000 vertices
+% path = '../data/mesh/shuttle.obj';          % ~300 vertices
+% path = '../data/mesh/duck.obj';             % ~900 vertices
+% path = '../data/mesh/LEGO_man.obj';    
+% path = '../data/mesh/iris.obj';             % ~1100 vertices
+% path = '../data/mesh/gecko.obj';            % ~2200 vertices
+% path = '../data/mesh/sphere.obj';           % ~2500 vertices
+% path = '../data/mesh/sphere_distorted.obj'; % ~2500 vertices // holes
+% path = '../data/mesh/sphere_bumps.obj';     % ~2500 vertices // holes
+% path = '../data/mesh/camel.obj';            % ~3700 vertices
+% path = '../data/mesh/bear_pnd.obj';         % ~3900 vertices
+% path = '../data/mesh/octopus.obj';          % ~4000 vertices
+% path = '../data/mesh/lamp.obj';             % ~4400 vertices // holes
+% path = '../data/mesh/cow.obj';              % ~4500 vertices
+% path = '../data/mesh/atenea.obj';           % ~4700 vertices
+% path = '../data/mesh/head.obj';             % ~5100 vertices
+% path = '../data/mesh/sabtooth.obj';         % ~5800 vertices
+ path = '../data/mesh/mammoth.obj';          % ~7400 vertices
+% path = '../data/mesh/suzanne.obj';          % ~7800 vertices
 
-%[V, F] = read_obj('../data/mesh/ankylosaurus.obj'); lambdauni = 0.02; lambdacot = 0.01;   % ~5100 vertices
-%[V, F] = read_obj('../data/mesh/pumpkin.obj');          % ~5000 vertices
-%[V, F] = read_obj('../data/mesh/shuttle.obj');          % ~300 vertices
-%[V, F] = read_obj('../data/mesh/duck.obj');             % ~900 vertices
-%[V, F] = read_obj('../data/mesh/LEGO_man.obj');    
-%[V, F] = read_obj('../data/mesh/iris.obj');             % ~1100 vertices
-%[V, F] = read_obj('../data/mesh/gecko.obj');            % ~2200 vertices
-%[V, F] = read_obj('../data/mesh/sphere.obj');           % ~2500 vertices
-%[V, F] = read_obj('../data/mesh/sphere_distorted.obj'); % ~2500 vertices // holes
-%[V, F] = read_obj('../data/mesh/sphere_bumps.obj');     % ~2500 vertices // holes
-%[V, F] = read_obj('../data/mesh/camel.obj');           % ~3700 vertices
-%[V, F] = read_obj('../data/mesh/bear_pnd.obj');         % ~3900 vertices
-%[V, F] = read_obj('../data/mesh/octopus.obj');          % ~4000 vertices
-%[V, F] = read_obj('../data/mesh/lamp.obj');             % ~4400 vertices // holes
-%[V, F] = read_obj('../data/mesh/cow.obj');              % ~4500 vertices
-%[V, F] = read_obj('../data/mesh/atenea.obj');           % ~4700 vertices
-%[V, F] = read_obj('../data/mesh/head.obj');             % ~5100 vertices
-%[V, F] = read_obj('../data/mesh/sabtooth.obj');         % ~5800 vertices
-%[V, F] = read_obj('../data/mesh/mammoth.obj');          % ~7400 vertices
-%[V, F] = read_obj('../data/mesh/suzanne.obj');          % ~7800 vertices
-
-% scr = get(0, 'ScreenSize');
-% figure('Name', 'Laplacian', 'NumberTitle', 'off', 'Position', [scr(1)+10 scr(2)+50 15*scr(3)/16 2*scr(4)/3]);
-% plt(1) = subplot(1,2,1);
-% trisurf(F, V(:, 1), V(:, 2), V(:, 3));
-% drawnow;
-% plt(2) = subplot(1,2,2);
-% hlink = linkprop(plt, {'CameraPosition','CameraUpVector'} );
-% rotate3d on
-% for i = 1:50
-%     V = taubinsmooth( F, V, 1, 0.5, 0.5);
-%     trisurf(F, V(:, 1), V(:, 2), V(:, 3));
-%     drawnow;
-% end
-% hlink = linkprop(plt, {'CameraPosition','CameraUpVector'} );
-% rotate3d on
-% return;
+[V, F] = read_obj(path);      
 
 max_vertices = max(V, [], 1);
 min_vertices = min(V, [], 1);
@@ -60,7 +54,7 @@ for dim = 1:3
     V(:, dim) = 10*(V(:, dim) - min_vertices(dim)) / range_vertices(dim) - 5;
 end
 
-%[VxV, FxV] = calc_adjacent_vertices(V, F);
+[VxV, FxV] = calc_adjacent_vertices(V, F);
 
 %inspect vertex and face adjacency matrices
 % figure('Name', 'Vertex Adjacency')
@@ -71,17 +65,17 @@ end
 scr = get(0, 'ScreenSize'); 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %% normal vectors
-% N = calc_normal(V, F, FxV);
-% 
-% %show normal vectors on separate plot
-% normals = figure('Name', 'Normal vectors', 'NumberTitle', 'off', 'Position', [scr(3)/4 30 scr(3)/4 scr(3)/4]);
-% hold on;
-% trisurf(F, V(:, 1), V(:, 2), V(:, 3));
-% quiver3(V(:, 1), V(:, 2), V(:, 3), N(:, 1), N(:, 2), N(:, 3));
-% title('Vertex normals');
-% camlight
-% lighting gouraud;
+%% normal vectors
+N = calc_normal(V, F, FxV);
+
+%show normal vectors on separate plot
+normals = figure('Name', 'Normal vectors', 'NumberTitle', 'off', 'Position', [scr(3)/4 30 scr(3)/4 scr(3)/4]);
+hold on;
+trisurf(F, V(:, 1), V(:, 2), V(:, 3));
+quiver3(V(:, 1), V(:, 2), V(:, 3), N(:, 1), N(:, 2), N(:, 3));
+title('Vertex normals');
+camlight
+lighting gouraud;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% settings for laplacian
@@ -100,6 +94,7 @@ numIter = 150;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% update laplacian 
+
 plt = zeros(1, 2);
 laplacian_fig = figure('Name', 'Laplacian', 'NumberTitle', 'off', 'Position', [scr(1)+10 scr(2)+50 15*scr(3)/16 2*scr(4)/3]);
 %colorbar
@@ -154,7 +149,10 @@ for i = 1:numIter
         hold on; 
         trisurf(F, Vuni(:, 1), Vuni(:, 2), Vuni(:, 3));  
         hold off;
-        %recalculate laplacian1
+        
+        % calculate laplacian two times in a row, applying once in positive
+        % and once in negative direction to do non-shrinking smoothing 
+        % following Taubin's method
         [Muni, Duni, ~] = calc_laplacian(type1, Vuni, F);
         [Vuni, ~, ~] = applyMatrices(Vuni, Muni, Duni, -lambdauni);
         
@@ -177,20 +175,22 @@ for i = 1:numIter
         set(surface', 'edgecolor', 'k');
         hold off;
 
-        %recalculate laplacian2
+        % calculate laplacian two times in a row, applying once in positive
+        % and once in negative direction to do non-shrinking smoothing 
+        % following Taubin's method
         [Mcot, Dcot, ~] = calc_laplacian(type2, Vcot, F);
         Vcot = applyMatrices(Vcot, Mcot, Dcot, -lambdacot);
         
         [Mcot, Dcot, Kcot] = calc_laplacian(type2, Vcot, F);
         Vcot = applyMatrices(Vcot, Mcot, Dcot, lambdacot);
-        
-        
-        %Hcot = sqrt(sum(LapVcot.^2, 2)) / 2;
     end
     drawnow;
 end
 
-return;
+% return here to skip all below code
+if skipEigenAnalysis
+    return;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% eigen decomposition
 [eVecs, eVals] = eig(full(Luni));
@@ -254,19 +254,3 @@ end
 Vrec = (eVecs * pf);
 comp_fig = figure('Name', 'Enhanced eigenvectors', 'NumberTitle', 'off');
 trisurf(F, Vrec(:, 1), Vrec(:, 2), Vrec(:, 3));
-
-%helper function to apply Laplacian and mass matrix to data
-%returns new vertex positions and discrete average of laplace-beltrami
-function [V, Dvec, L] = applyMatrices(V, M, D, lambda)
-    L = D * M;
-    Dvec = lambda * L * V;
-    V = V + Dvec;
-end
-
-%helper function to apply Laplacian and mass matrix to data
-%returns new vertex positions and discrete average of laplace-beltrami
-function V = applyCotanMatrices(V, M, D, lambda)
-    b = D * V;
-    A = (D + lambda * D * M);
-    V = A \ b;
-end

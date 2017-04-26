@@ -1,8 +1,9 @@
 % @file     viewer2D.m
 % @author   afruehstueck
 % @date     30/01/2017
+%
+%create a 2D view and request a 2D user-generated object to plot
 
-%create a 2D view and request a 2D usergenerated object to plot
 function [viewer, points] = viewer2D(dimX, dimY, closedLine)
     clear;
     clc;

@@ -1,6 +1,11 @@
 % @file     ccvt.m
 % @author   afruehstueck
 % @date     27/03/2017
+%
+% implementation of Capacity Constrained Voronoi Tesselation (Balzer et al.)
+% use image or custom function as distribution function for the points
+% show iterative updates
+% note: first iteration can be rather slow - following iterations are increasingly fast
 
 function ccvt(N_sites, M_points, max_iterations, show_voronoi_regions, plot_in_two_figures, impath)    
     %% settings

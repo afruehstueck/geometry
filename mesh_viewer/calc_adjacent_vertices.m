@@ -1,6 +1,9 @@
 % @file     calc_adjacent_vertices.m
 % @author   anna fruehstueck
 % @date     18/02/2017
+%
+% calculate the adjacent vertices for each vertex
+% calculate the adjacent vertices for each face
 
 function [VxV, FxV] = calc_adjacent_vertices(V, F)
 str = sprintf('generating vertex adjacency matrix...');
@@ -16,15 +19,11 @@ for k=1:num_faces %iterate over all faces
     edges = nchoosek(vertices, 2); %look at all pairs of vertices
     vert_ind = [vert_ind; edges];
     
-    %[repmat(k, length(vertices), 1), vertices']
     face_vert_ind = [face_vert_ind; [repmat(k, length(vertices), 1), vertices']];
 end
-%tmp = vert_ind;
-%length(vert_ind)
+
 vert_ind = [vert_ind; fliplr(vert_ind)]; %symmetry
-%length(vert_ind)
 vert_ind = unique(vert_ind, 'rows'); %remove duplicates
-%isequal(vert_ind, tmp)
 entries = length(vert_ind)
 toc;
 

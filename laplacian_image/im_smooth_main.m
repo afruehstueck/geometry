@@ -1,10 +1,17 @@
 % @file     im_smooth_main.m
 % @author   anna fruehstueck
 % @date     01/03/2017
+%
+% load image from file, generate laplacian matrix and analyze properties 
+% of laplacian.
+% iteratively perform laplacian smoothing on input image using different
+% MATLAB methods. display result of smoothing in image at each iteration
+
 close all
 clc;
 clear;
 
+%% settings
 %impath = '../data/img/bunny.jpg';
 impath = '../data/img/sloth.jpg';
 %impath = '../data/img/flower.jpg';
@@ -24,6 +31,7 @@ iterations = 100;
 filtertype = string('filter2'); %'matrix', 'filter2' or 'circshift'
 filter = laplace1;
 
+%% algorithm
 if size(img, 3) == 3 && ~doRGB
     disp('convert image to grayscale...');
     img = rgb2gray(img); %convert img to grayscale

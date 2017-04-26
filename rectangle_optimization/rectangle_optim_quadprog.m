@@ -1,6 +1,8 @@
 % @file     rectangle_optim_quadprog.m
 % @author   afruehstueck
 % @date     03/04/2017
+%
+% constrain rectangles using MATLAB quadprog solver
 
 function constrained_rectangles = rectangle_optim_quadprog(rectangles, rows, cols, minimize_variables, alignment, align_in_obj_fun)    
     %% create hessian

@@ -1,6 +1,8 @@
 % @file     calc_adjacent_faces.m
 % @author   anna fruehstueck
 % @date     18/02/2017
+%
+% calculate the indices of all adjacent faces for each face
 
 function [FxF] = calc_adjacent_faces(F)
 % UNFORTUNATELY SUPER INEFFICIENT

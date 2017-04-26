@@ -1,9 +1,11 @@
 % @file     drawRectangles.m
 % @author   afruehstueck
 % @date     08/04/2017
-% helper function that takes a list of rectangles in format [x y w h]
+%
+% takes a list of rectangles in format [x y w h]
 % where (x y) = coordinates of center point, (w h) = width&height of rectangle
 % and draws the rectangles as well as their center points
+
 function drawRectangles(rectangles, face_colors, edge_colors, x_bounds, y_bounds)
     hold on;
     %calculate bottom left of rectangle to use with MATLAB rectangle drawing function

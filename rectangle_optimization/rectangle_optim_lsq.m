@@ -1,6 +1,8 @@
 % @file     rectangle_optim_lsq.m
 % @author   afruehstueck
 % @date     13/04/2017
+%
+% constrain rectangles using MATLAB lsqlin solver
 
 function constrained_rectangles = rectangle_optim_lsq(rectangles, rows, cols, minimize_variables, alignment)
     

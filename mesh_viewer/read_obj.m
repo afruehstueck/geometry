@@ -3,18 +3,18 @@
 % @origin   alec jacobson
 %           modified from source found at
 % @source   http://www.alecjacobson.com/weblog/?p=917
-
+%
+% Reads a .obj mesh file and outputs the vertex and face list
+% assumes a 3D triangle mesh and ignores everything but:
+% v x y z and f i j k [l] lines
+% Input:
+%  filename string of obj file's path
+%
+% Output:
+%  V  number of vertices x 3 array of vertex positions
+%  F  number of faces x 3 array of face indices
+  
 function [V,F] = read_obj(filename)
-  % Reads a .obj mesh file and outputs the vertex and face list
-  % assumes a 3D triangle mesh and ignores everything but:
-  % v x y z and f i j k [l] lines
-  % Input:
-  %  filename string of obj file's path
-  %
-  % Output:
-  %  V  number of vertices x 3 array of vertex positions
-  %  F  number of faces x 3 array of face indices
-  %
   V = zeros(0, 3);
   F = zeros(0, 3);
   vertex_index = 1;
@@ -22,17 +22,14 @@ function [V,F] = read_obj(filename)
  
   fid = fopen(filename, 'rt');
   line = fgets(fid);
-  
-  %progress output
-  %fn = strsplit(filename,'/');
-  %fn = fn{end};
   fn = filename;
-  lPrompt = 10; %length of command window prompt: this may vary depending on MATLAB version
+
+  %progress output
   vct = 0;
   fct = 0;
-  str = sprintf('loading %s\n%d vertices\n%d faces', fn, vct, fct);
-  fprintf(str);
-  
+  showProgress = true;
+  reverseStr = '';
+    
   while ischar(line)
     [token, remain] = strtok(line);
     switch token %check first letter
@@ -41,14 +38,6 @@ function [V,F] = read_obj(filename)
             if ~isempty(values)
               V(vertex_index, :) = values;
               vertex_index = vertex_index + 1;
-            end
-            
-            %progress output
-            if mod(vertex_index, 100) == 0
-                vct = vertex_index;
-                str = sprintf('loading %s\n%d vertices\n%d faces',fn, vct, fct);
-                lStr = length(str);
-                [char(8)*ones(1, lStr + lPrompt), str]
             end
         case 'f' %face
             values = sscanf(remain, '%d');
@@ -85,24 +74,27 @@ function [V,F] = read_obj(filename)
                     face_index = face_index + 2;
                 end
             end
-            
-            %progress output
-            if mod(face_index, 100) == 0
-                fct = face_index;
-                str = sprintf('loading %s\n%d vertices\n%d faces', fn, vct, fct);
-                lStr = length(str);
-                [char(8)*ones(1, lStr + lPrompt), str]
-            end
-        otherwise
-%            if ~isempty(line)
-%             fprintf('Ignored: %s', line); 
-%            end
     end
+    
+    %output progress of loading in console
+    if mod(vertex_index, 100) == 0
+        vct = vertex_index;
+        showProgress = true;
+    end
+    if mod(face_index, 100) == 0
+        fct = face_index;
+        showProgress = true;
+    end
+    
+    if showProgress
+        msg = sprintf('loading %s\n%d vertices\n%d faces\n', fn, vct, fct);
+        fprintf([reverseStr, msg]);
+        %clever trick: \b is the backspace character
+        reverseStr = repmat(sprintf('\b'), 1, length(msg));
+        showProgress = false;
+    end
+    
     line = fgets(fid);
   end
-%   elems = all(F);
-%   if elems(4) == 0
-%       F(:,4)=[]
-%   end
   fclose(fid);
 end

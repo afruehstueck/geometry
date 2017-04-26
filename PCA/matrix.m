@@ -1,8 +1,9 @@
 % @file     matrix.m
 % @author   afruehstueck
 % @date     30/01/2017
-
+%
 %create special matrices on the basis of various input arguments
+
 function m = matrix(varargin)
     %dimension specifies the size of the matrix
     dimension = varargin{1};
